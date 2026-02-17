@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using OrderAnalytics.API.Models;
+using BusinessAnalytics.API.Models;
 
-namespace OrderAnalytics.API.Data;
+namespace BusinessAnalytics.API.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {

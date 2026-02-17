@@ -1,7 +1,7 @@
 using System.Collections;
-using OrderAnalytics.API.Data;
+using BusinessAnalytics.API.Data;
 
-namespace OrderAnalytics.API.Repositories;
+namespace BusinessAnalytics.API.Repositories;
 
 /// <summary>
 /// Unit of Work (UoW) паттерн. 

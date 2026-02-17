@@ -40,7 +40,7 @@ function App() {
   return (
     <div className="container mt-4">
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ color: 'var(--primary)', margin: 0 }}>OrderAnalytics</h1>
+        <h1 style={{ color: 'var(--primary)', margin: 0 }}>BusinessAnalytics</h1>
         <button onClick={handleLogout} className="btn-primary" style={{ width: 'auto' }}>Logout</button>
       </nav>
 

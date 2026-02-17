@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace OrderAnalytics.API.Models;
+namespace BusinessAnalytics.API.Models;
 
 public class ApplicationUser : IdentityUser
 {

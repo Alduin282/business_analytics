@@ -3,11 +3,11 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OrderAnalytics.API.Data;
+using BusinessAnalytics.API.Data;
 
 #nullable disable
 
-namespace OrderAnalytics.API.Migrations
+namespace BusinessAnalytics.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -145,7 +145,7 @@ namespace OrderAnalytics.API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("OrderAnalytics.API.Models.ApplicationUser", b =>
+            modelBuilder.Entity("BusinessAnalytics.API.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -220,7 +220,7 @@ namespace OrderAnalytics.API.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("OrderAnalytics.API.Models.ApplicationUser", null)
+                    b.HasOne("BusinessAnalytics.API.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -229,7 +229,7 @@ namespace OrderAnalytics.API.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("OrderAnalytics.API.Models.ApplicationUser", null)
+                    b.HasOne("BusinessAnalytics.API.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -244,7 +244,7 @@ namespace OrderAnalytics.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OrderAnalytics.API.Models.ApplicationUser", null)
+                    b.HasOne("BusinessAnalytics.API.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -253,7 +253,7 @@ namespace OrderAnalytics.API.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("OrderAnalytics.API.Models.ApplicationUser", null)
+                    b.HasOne("BusinessAnalytics.API.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

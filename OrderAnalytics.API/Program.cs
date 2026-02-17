@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OrderAnalytics.API.Data;
-using OrderAnalytics.API.Models;
-using OrderAnalytics.API.Repositories;
+using BusinessAnalytics.API.Data;
+using BusinessAnalytics.API.Models;
+using BusinessAnalytics.API.Repositories;
 
 // на время разработки упрощаем требования ко всему , небезопасно для прода 
 // TODO: в проде заменить на норм требования

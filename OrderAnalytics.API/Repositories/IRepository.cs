@@ -1,4 +1,4 @@
-namespace OrderAnalytics.API.Repositories;
+namespace BusinessAnalytics.API.Repositories;
 
 public interface IRepository<T, TKey> where T : class
 {

@@ -4,10 +4,10 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using OrderAnalytics.API.Models;
-using OrderAnalytics.API.Models.DTOs;
+using BusinessAnalytics.API.Models;
+using BusinessAnalytics.API.Models.DTOs;
 
-namespace OrderAnalytics.API.Controllers;
+namespace BusinessAnalytics.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

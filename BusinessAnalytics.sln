@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderAnalytics.API", "OrderAnalytics.API\OrderAnalytics.API.csproj", "{B357B8F6-7FC4-FE60-DF8C-9872680090DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessAnalytics.API", "BusinessAnalytics.API\BusinessAnalytics.API.csproj", "{B357B8F6-7FC4-FE60-DF8C-9872680090DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

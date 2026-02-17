@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using OrderAnalytics.API.Data;
+using BusinessAnalytics.API.Data;
 
-namespace OrderAnalytics.API.Repositories;
+namespace BusinessAnalytics.API.Repositories;
 
 public class Repository<T, TKey> : IRepository<T, TKey> where T : class
 {
