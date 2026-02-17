@@ -6,27 +6,27 @@ namespace BusinessAnalytics.API.Data;
 public class DbSeeder
 {
     // Generation Parameters
-    private const int DaysToHistory = 365;
-    private const int MinOrdersPerDay = 1;
-    private const int MaxOrdersPerDay = 10;
-    private const double SeasonalWaveIntensity = 0.2; // 20% fluctuation
-    private const double GrowthTrendMultiplier = 1.0; // 1.0 means 100% growth over the period
-    private const int MinItemsPerOrder = 1;
-    private const int MaxItemsPerOrder = 2;
-    private const int TotalCustomersToGenerate = 1000;
+    public const int DaysToHistory = 365;
+    public const int MinOrdersPerDay = 1;
+    public const int MaxOrdersPerDay = 10;
+    public const double SeasonalWaveIntensity = 0.2;
+    public const double GrowthTrendMultiplier = 1.0;
+    public const int MinItemsPerOrder = 1;
+    public const int MaxItemsPerOrder = 2;
+    public const int TotalCustomersToGenerate = 1000;
     
-    // Status Distribution (percentage)
-    private const int SuccessRate = 80;
-    private const int ShippingRate = 10;
-    private const int ProcessingRate = 5;
-    // Remainder is Cancelled (5%)
+    // Status Distribution
+    public const int SuccessRate = 80;
+    public const int ShippingRate = 10;
+    public const int ProcessingRate = 5;
 
     private readonly ApplicationDbContext _context;
-    private readonly Random _random = new();
+    private readonly Random _random;
 
-    public DbSeeder(ApplicationDbContext context)
+    public DbSeeder(ApplicationDbContext context, Random? random = null)
     {
         _context = context;
+        _random = random ?? new Random();
     }
 
     public async Task SeedAsync(string userId)
