@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OrderAnalytics.API\BusinessAnalytics.API.csproj" />
+    <ProjectReference Include="..\BusinessAnalytics.API\BusinessAnalytics.API.csproj" />
   </ItemGroup>
 
 </Project>

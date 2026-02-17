@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessAnalytics.API", "BusinessAnalytics.API\BusinessAnalytics.API.csproj", "{B357B8F6-7FC4-FE60-DF8C-9872680090DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderAnalytics.Tests", "OrderAnalytics.Tests\OrderAnalytics.Tests.csproj", "{7BB79957-1E16-4ACD-808B-0B884819CEBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessAnalytics.Tests", "BusinessAnalytics.Tests\BusinessAnalytics.Tests.csproj", "{7BB79957-1E16-4ACD-808B-0B884819CEBB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
