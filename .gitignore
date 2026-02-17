@@ -1,0 +1,37 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# React / Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
