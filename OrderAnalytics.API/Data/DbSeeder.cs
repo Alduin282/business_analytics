@@ -5,6 +5,22 @@ namespace BusinessAnalytics.API.Data;
 
 public class DbSeeder
 {
+    // Generation Parameters
+    private const int DaysToHistory = 365;
+    private const int MinOrdersPerDay = 1;
+    private const int MaxOrdersPerDay = 10;
+    private const double SeasonalWaveIntensity = 0.2; // 20% fluctuation
+    private const double GrowthTrendMultiplier = 1.0; // 1.0 means 100% growth over the period
+    private const int MinItemsPerOrder = 1;
+    private const int MaxItemsPerOrder = 2;
+    private const int TotalCustomersToGenerate = 1000;
+    
+    // Status Distribution (percentage)
+    private const int SuccessRate = 80;
+    private const int ShippingRate = 10;
+    private const int ProcessingRate = 5;
+    // Remainder is Cancelled (5%)
+
     private readonly ApplicationDbContext _context;
     private readonly Random _random = new();
 
@@ -15,16 +31,16 @@ public class DbSeeder
 
     public async Task SeedAsync(string userId)
     {
-        // 1. Cleanup existing data for this user to avoid duplication
+        // 1. Cleanup existing data for this user
         await CleanupAsync(userId);
 
         // 2. Create Categories & Products
         var categories = await CreateCategoriesAndProductsAsync(userId);
 
         // 3. Create Customers
-        var customers = await CreateCustomersAsync(userId, 1000);
+        var customers = await CreateCustomersAsync(userId, TotalCustomersToGenerate);
 
-        // 4. Generate Orders for the past year
+        // 4. Generate Orders for the past period
         await GenerateOrdersAsync(userId, categories, customers);
 
         await _context.SaveChangesAsync();
@@ -95,7 +111,7 @@ public class DbSeeder
                 UserId = userId,
                 FullName = $"{firstName} {lastName}",
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}{i}@example.com",
-                CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(0, 365))
+                CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(0, DaysToHistory))
             });
         }
 
@@ -107,21 +123,21 @@ public class DbSeeder
     private async Task GenerateOrdersAsync(string userId, List<Category> categories, List<Customer> customers)
     {
         var allProducts = await _context.Products.Where(p => p.UserId == userId).ToListAsync();
-        DateTime startDate = DateTime.UtcNow.AddDays(-365);
+        DateTime startDate = DateTime.UtcNow.AddDays(-DaysToHistory);
 
-        for (int day = 0; day <= 365; day++)
+        for (int day = 0; day <= DaysToHistory; day++)
         {
             DateTime currentDate = startDate.AddDays(day);
             
-            // 1. Determine base order count (1-10)
-            int baseCount = _random.Next(1, 11);
+            // 1. Base random count
+            int baseCount = _random.Next(MinOrdersPerDay, MaxOrdersPerDay + 1);
 
-            // 2. Trends: Growth + Sine wave (seasonal)
-            double growthTrend = 1.0 + (double)day / 365.0; // Slow growth from 1x to 2x
-            double seasonalWave = 1.0 + Math.Sin(day / 30.0) * 0.2; // 20% wave every ~month
-            double weekendBoost = (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday) ? 1.5 : 1.0;
+            // 2. Applied Trends
+            double growthFactor = 1.0 + ((double)day / DaysToHistory) * GrowthTrendMultiplier;
+            double seasonalFactor = 1.0 + Math.Sin(day / 30.0) * SeasonalWaveIntensity;
+            double weekendFactor = (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday) ? 1.5 : 1.0;
 
-            int dailyOrderCount = (int)(baseCount * growthTrend * seasonalWave * weekendBoost);
+            int dailyOrderCount = (int)(baseCount * growthFactor * seasonalFactor * weekendFactor);
 
             for (int i = 0; i < dailyOrderCount; i++)
             {
@@ -136,10 +152,11 @@ public class DbSeeder
                     UpdatedAt = currentDate
                 };
 
-                // 3. Add 1-2 random products
-                int itemsCount = _random.Next(1, 3);
-                decimal total = 0;
-                for (int j = 0; j < itemsCount; j++)
+                // Pick random number of items
+                int itemsInOrderCount = _random.Next(MinItemsPerOrder, MaxItemsPerOrder + 1);
+                decimal orderTotal = 0;
+                
+                for (int j = 0; j < itemsInOrderCount; j++)
                 {
                     var product = allProducts[_random.Next(allProducts.Count)];
                     var quantity = _random.Next(1, 3);
@@ -151,9 +168,9 @@ public class DbSeeder
                         Quantity = quantity,
                         UnitPrice = product.Price
                     });
-                    total += product.Price * quantity;
+                    orderTotal += product.Price * quantity;
                 }
-                order.TotalAmount = total;
+                order.TotalAmount = orderTotal;
                 _context.Orders.Add(order);
             }
         }
@@ -162,9 +179,9 @@ public class DbSeeder
     private OrderStatus GetRandomStatus()
     {
         int roll = _random.Next(0, 100);
-        if (roll < 80) return OrderStatus.Delivered; // 80% success
-        if (roll < 90) return OrderStatus.Shipped;   // 10% in transit
-        if (roll < 95) return OrderStatus.Processing; // 5% processing
-        return OrderStatus.Cancelled;                 // 5% cancelled
+        if (roll < SuccessRate) return OrderStatus.Delivered;
+        if (roll < SuccessRate + ShippingRate) return OrderStatus.Shipped;
+        if (roll < SuccessRate + ShippingRate + ProcessingRate) return OrderStatus.Processing;
+        return OrderStatus.Cancelled;
     }
 }

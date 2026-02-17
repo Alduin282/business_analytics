@@ -35,3 +35,7 @@ logs
 # OS
 .DS_Store
 Thumbs.db
+
+# Project Analytics
+visualize_analytics.py
+revenue_chart.png
