@@ -9,9 +9,18 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const authService = {
   register: async (email, password) => {
-    const response = await api.post('/auth/register', { email, password });
+    const timeZoneId = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const response = await api.post('/auth/register', { email, password, timeZoneId });
     return response.data;
   },
   login: async (email, password) => {
@@ -25,6 +34,13 @@ export const authService = {
     localStorage.removeItem('token');
   },
   getToken: () => localStorage.getItem('token'),
+};
+
+export const ordersService = {
+  getAnalytics: async (params) => {
+    const response = await api.get('/orders/analytics', { params });
+    return response.data;
+  },
 };
 
 export default api;

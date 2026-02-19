@@ -8,7 +8,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace BusinessAnalytics.Tests;
 
@@ -180,7 +179,7 @@ public class OrdersControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAnalytics_ExcludesCancelledOrders()
+    public async Task GetAnalytics_CancelledOrders_CancelledExcluded()
     {
         // Arrange
         var startDate = new DateTime(2023, 1, 1);
@@ -203,7 +202,7 @@ public class OrdersControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAnalytics_RespectsTimeZone()
+    public async Task GetAnalytics_UserTimeZone_UpperBoundaryCorrectness()
     {
         // Arrange
         // Order is at 23:30 UTC on Jan 1st. 
@@ -227,6 +226,30 @@ public class OrdersControllerTests : IDisposable
         // In Moscow time, Jan 1st should be 0, Jan 2nd should be 100
         data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(0);
         data.First(d => d.Label == "2023-01-02").TotalAmount.Should().Be(DefaultTotalAmount);
+    }
+
+    [Fact]
+    public async Task GetAnalytics_UserTimeZone_LowerBoundaryCorrectness()
+    {
+        // Arrange
+        // Moscow Jan 1st 00:00 is Dec 31st 21:00 UTC.
+        // So an order at Dec 31st 22:00 UTC SHOULD be included in Jan 1st analytics.
+        SetupUser(TestUserId, "Russian Standard Time");
+
+        var orderDateUtc = new DateTime(2022, 12, 31, 22, 0, 0, DateTimeKind.Utc);
+        _context.Orders.Add(_orderBuilder.WithDate(orderDateUtc).Build());
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Day, new DateTime(2023, 1, 1), new DateTime(2023, 1, 1));
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
+
+        // The order from Dec 31st UTC should be counted for Jan 1st Local
+        data.Should().HaveCount(1);
+        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(DefaultTotalAmount);
     }
 
     [Fact]
@@ -319,7 +342,6 @@ public class OrdersControllerTests : IDisposable
 
     private void SetupAnonymousUser()
     {
-        // Создаем principal без клеймов и без типа аутентификации
         var principal = new ClaimsPrincipal(new ClaimsIdentity());
         _controller.ControllerContext = new ControllerContext
         {

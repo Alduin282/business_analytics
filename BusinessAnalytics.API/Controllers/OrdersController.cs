@@ -42,12 +42,12 @@ public class OrdersController : ControllerBase
         if (!TryResolveTimeZone(timeZoneId, out var tz))
             tz = TimeZoneInfo.Utc;
 
-        if (!TryBuildDateRange(startDate, endDate, tz, out var start, out var end, out var validationError))
+        if (!TryBuildDateRange(startDate, endDate, tz, out var startDateRange, out var endDateRange, out var validationError))
             return BadRequest(validationError);
 
-        var rawOrders = await FetchOrdersFromDb(userId, start, end);
+        var rawOrders = await FetchOrdersFromDb(userId, startDateRange, endDateRange, tz);
         var aggregatedDataDict = AggregateByPeriod(rawOrders, groupBy, tz);
-        var result = FillGaps(aggregatedDataDict, start, end, groupBy, tz);
+        var result = FillGaps(aggregatedDataDict, startDateRange, endDateRange, groupBy, tz);
 
         return Ok(result);
     }
@@ -73,16 +73,12 @@ public class OrdersController : ControllerBase
         out string? error)
     {
         var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
-        var endLocal = endDate.HasValue
-            ? TimeZoneInfo.ConvertTimeFromUtc(endDate.Value, tz)
-            : nowLocal;
-        var startLocal = startDate.HasValue
-            ? TimeZoneInfo.ConvertTimeFromUtc(startDate.Value, tz)
-            : endLocal.AddYears(-1);
+        var endLocal = endDate ?? nowLocal.Date;
+        var startLocal = startDate ?? endLocal.AddYears(-1).Date;
 
         start = startLocal.Date;
         end   = endLocal.Date.AddDays(1);
-        
+
         return ValidateDateRange(start, end, maxYearsLimit, out error);
     }
 
@@ -110,13 +106,17 @@ public class OrdersController : ControllerBase
     }
 
     private async Task<List<(DateTime OrderDate, decimal TotalAmount)>> FetchOrdersFromDb(
-        string userId, DateTime start, DateTime end)
+        string userId, DateTime startLocal, DateTime endLocal, TimeZoneInfo tz)
     {
+        // Convert local boundaries from the UI/request to UTC for DB querying
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(startLocal, DateTimeKind.Unspecified), tz);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(endLocal, DateTimeKind.Unspecified), tz);
+
         return await _unitOfWork.Repository<Order, Guid>()
             .Query()
             .Where(o => o.UserId == userId &&
-                        o.OrderDate >= start &&
-                        o.OrderDate < end &&
+                        o.OrderDate >= startUtc &&
+                        o.OrderDate < endUtc &&
                         o.Status != OrderStatus.Cancelled)
             .Select(o => new { o.OrderDate, o.TotalAmount })
             .ToListAsync()
