@@ -29,11 +29,16 @@ public class AuthController : ControllerBase
         if (userExists != null)
             return BadRequest(new AuthResponseDto { Success = false, Message = "User already exists!" });
 
+        string resolvedTz = "UTC";
+        try { resolvedTz = TimeZoneInfo.FindSystemTimeZoneById(model.TimeZoneId).Id; }
+        catch (TimeZoneNotFoundException) { /* fallback to UTC */ }
+
         var user = new ApplicationUser
         {
             Email = model.Email,
             SecurityStamp = Guid.NewGuid().ToString(),
-            UserName = model.Email
+            UserName = model.Email,
+            TimeZoneId = resolvedTz
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
@@ -55,6 +60,8 @@ public class AuthController : ControllerBase
             var authClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("TimeZoneId", user.TimeZoneId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 

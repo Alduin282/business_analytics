@@ -4,5 +4,6 @@ namespace BusinessAnalytics.API.Models;
 
 public class ApplicationUser : IdentityUser
 {
-    // You can add custom fields here in the future
+    /// <summary>IANA timezone ID, e.g. "Europe/Moscow". Set at registration.</summary>
+    public string TimeZoneId { get; set; } = "UTC";
 }

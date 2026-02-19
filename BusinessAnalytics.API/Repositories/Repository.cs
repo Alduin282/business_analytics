@@ -14,6 +14,11 @@ public class Repository<T, TKey> : IRepository<T, TKey> where T : class
         _dbSet = context.Set<T>();
     }
 
+    public IQueryable<T> Query()
+    {
+        return _dbSet.AsQueryable();
+    }
+
     public async Task<T?> GetByIdAsync(TKey id)
     {
         return await _dbSet.FindAsync(id);
