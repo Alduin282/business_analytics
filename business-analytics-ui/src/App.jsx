@@ -1,23 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
-import { authService } from './services/api';
+import { authService, ordersService } from './services/api';
+import AnalyticsChart from './components/Dashboard/AnalyticsChart';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+  const [checkingToken, setCheckingToken] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState([]);
+  const [groupBy, setGroupBy] = useState('Month');
+  const [startDate, setStartDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const token = authService.getToken();
     if (token) {
       setIsAuthenticated(true);
     }
+    setCheckingToken(false);
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAnalytics();
+    }
+  }, [isAuthenticated, groupBy, startDate, endDate]);
+
+  const fetchAnalytics = async () => {
+    setLoading(true);
+    try {
+      const data = await ordersService.getAnalytics({
+        groupBy,
+        startDate: startDate ? new Date(startDate).toISOString() : null,
+        endDate: endDate ? new Date(endDate).toISOString() : null
+      });
+      setAnalyticsData(data);
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     authService.logout();
     setIsAuthenticated(false);
   };
+
+  if (checkingToken) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: 'radial-gradient(circle at top left, #1e293b, #0f172a)',
+        color: 'white'
+      }}>
+        <div className="spinner"></div>
+        <p style={{ marginLeft: '1rem' }}>Checking session...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -38,28 +84,88 @@ function App() {
   }
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4" style={{ width: '100%' }}>
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
         <h1 style={{ color: 'var(--primary)', margin: 0 }}>BusinessAnalytics</h1>
         <button onClick={handleLogout} className="btn-primary" style={{ width: 'auto' }}>Logout</button>
       </nav>
 
       <div className="glass-card">
-        <h2>Dashboard</h2>
-        <p className="text-muted">Welcome to your data analytics workspace. Your skeleton is ready, and you can now start adding your custom analytics charts and data tables.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2>Revenue Analytics</h2>
+            <p className="text-muted">Track your performance over time.</p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                style={{ marginBottom: 0, width: '160px', padding: '0.5rem' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                style={{ marginBottom: 0, width: '160px', padding: '0.5rem' }}
+              />
+            </div>
+
+            <div className="btn-group" style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem', borderRadius: '8px', height: 'fit-content', marginTop: 'auto' }}>
+              {['Day', 'Week', 'Month'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setGroupBy(period)}
+                  className={groupBy === period ? 'btn-primary' : 'btn-ghost'}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.75rem',
+                    width: 'auto',
+                    background: groupBy === period ? 'var(--primary)' : 'transparent',
+                    color: groupBy === period ? '#fff' : 'rgba(255,255,255,0.6)',
+                    borderRadius: '6px'
+                  }}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="spinner"></div> {/* Assume there's a spinner in CSS or just text */}
+            <p>Loading analytics...</p>
+          </div>
+        ) : (
+          <AnalyticsChart data={analyticsData} />
+        )}
 
         <div className="mt-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(99, 102, 241, 0.1)' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--primary)' }}>Active Orders</h3>
-            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>1,284</p>
+            <h3 style={{ fontSize: '1rem', color: 'var(--primary)' }}>Total Revenue</h3>
+            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+              ${analyticsData.reduce((sum, item) => sum + item.totalAmount, 0).toLocaleString()}
+            </p>
           </div>
           <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(34, 211, 238, 0.1)' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--accent)' }}>Revenue</h3>
-            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>$45,200</p>
+            <h3 style={{ fontSize: '1rem', color: 'var(--accent)' }}>Average/Period</h3>
+            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+              ${analyticsData.length > 0
+                ? (analyticsData.reduce((sum, item) => sum + item.totalAmount, 0) / analyticsData.length).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                : 0}
+            </p>
           </div>
           <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.1)' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--error)' }}>Pending</h3>
-            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>42</p>
+            <h3 style={{ fontSize: '1rem', color: 'var(--error)' }}>Periods</h3>
+            <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>{analyticsData.length}</p>
           </div>
         </div>
       </div>
