@@ -10,8 +10,27 @@ function App() {
   const [checkingToken, setCheckingToken] = useState(true);
   const [analyticsData, setAnalyticsData] = useState([]);
   const [groupBy, setGroupBy] = useState('Month');
-  const [startDate, setStartDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const getDefaultDates = () => {
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const start = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    return {
+      start: formatDate(start),
+      end: formatDate(end)
+    };
+  };
+
+  const initialDates = getDefaultDates();
+  const [startDate, setStartDate] = useState(initialDates.start);
+  const [endDate, setEndDate] = useState(initialDates.end);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -47,6 +66,13 @@ function App() {
   const handleLogout = () => {
     authService.logout();
     setIsAuthenticated(false);
+  };
+
+  const handleReset = () => {
+    const defaults = getDefaultDates();
+    setStartDate(defaults.start);
+    setEndDate(defaults.end);
+    setGroupBy('Month');
   };
 
   if (checkingToken) {
@@ -116,6 +142,27 @@ function App() {
                 style={{ marginBottom: 0, width: '160px', padding: '0.5rem' }}
               />
             </div>
+
+            <button
+              onClick={handleReset}
+              className="btn-ghost"
+              style={{
+                padding: '0.4rem 0.8rem',
+                marginTop: 'auto',
+                fontSize: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                width: 'auto',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                height: '35px'
+              }}
+              title="Reset to default (1 year)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              Reset
+            </button>
 
             <div className="btn-group" style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem', borderRadius: '8px', height: 'fit-content', marginTop: 'auto' }}>
               {['Day', 'Week', 'Month'].map((period) => (

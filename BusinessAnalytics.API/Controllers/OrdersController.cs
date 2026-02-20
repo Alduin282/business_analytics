@@ -37,7 +37,6 @@ public class OrdersController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
 
-        // Read timezone from JWT claim (set at login from user's DB record)
         var timeZoneId = User.FindFirstValue("TimeZoneId") ?? DefaultTimeZone;
         if (!TryResolveTimeZone(timeZoneId, out var tz))
             tz = TimeZoneInfo.Utc;
@@ -155,15 +154,39 @@ public class OrdersController : ControllerBase
 
             if (seenLabels.Add(label))
             {
+                bool isPartial = IsPeriodPartial(localDate, groupBy, start, end);
                 result.Add(new AnalyticsPoint(
                     Label: label,
-                    TotalAmount: dataDict.GetValueOrDefault(label, 0m)));
+                    TotalAmount: dataDict.GetValueOrDefault(label, 0m),
+                    IsPartial: isPartial));
             }
 
             currentUtc = currentUtc.AddDays(1);
         }
 
         return result;
+    }
+
+    private static bool IsPeriodPartial(DateTime localDate, GroupPeriod groupBy, DateTime requestStart, DateTime requestEnd)
+    {
+        if (groupBy == GroupPeriod.Day) return false;
+
+        DateTime periodStart;
+        DateTime periodEnd;
+
+        if (groupBy == GroupPeriod.Month)
+        {
+            periodStart = new DateTime(localDate.Year, localDate.Month, 1);
+            periodEnd = periodStart.AddMonths(1);
+        }
+        else
+        {
+            int diff = (7 + (localDate.DayOfWeek - DayOfWeek.Monday)) % 7;
+            periodStart = localDate.AddDays(-diff).Date;
+            periodEnd = periodStart.AddDays(7);
+        }
+
+        return requestStart > periodStart || requestEnd < periodEnd;
     }
 
     private static DateTime AlignToStartOfPeriod(DateTime date, GroupPeriod groupBy)

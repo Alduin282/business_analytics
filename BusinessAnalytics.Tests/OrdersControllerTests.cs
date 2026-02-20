@@ -349,6 +349,117 @@ public class OrdersControllerTests : IDisposable
         };
     }
 
+    [Fact]
+    public async Task GetAnalytics_IsPartial_DayGrouping_AlwaysFalse()
+    {
+        // Arrange
+        var startDate = new DateTime(2023, 1, 1, 0, 0, 0);
+        var endDate = new DateTime(2023, 1, 1, 0, 0, 1);
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Day, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().AllSatisfy(p => p.IsPartial.Should().BeFalse());
+    }
+
+    [Fact]
+    public async Task GetAnalytics_IsPartial_MonthGrouping_PartialAtStart()
+    {
+        // Arrange
+        var startDate = new DateTime(2023, 1, 15); // Mid-month
+        var endDate = new DateTime(2023, 1, 31);
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().HaveCount(1);
+        data[0].IsPartial.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAnalytics_IsPartial_MonthGrouping_PartialAtEnd()
+    {
+        // Arrange
+        var startDate = new DateTime(2023, 1, 1);
+        var endDate = new DateTime(2023, 1, 15); // End mid-month
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().HaveCount(1);
+        data[0].IsPartial.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAnalytics_IsPartial_MonthGrouping_FullMonth()
+    {
+        // Arrange
+        var startDate = new DateTime(2023, 1, 1);
+        var endDate = new DateTime(2023, 1, 31);
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().HaveCount(1);
+        data[0].IsPartial.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAnalytics_IsPartial_WeekGrouping_PartialAtStart()
+    {
+        // Arrange
+        var startDate = new DateTime(2026, 2, 3); // Tuesday (Feb 2 is Monday)
+        var endDate = new DateTime(2026, 2, 8); // Sunday
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().HaveCount(1);
+        data[0].IsPartial.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAnalytics_IsPartial_WeekGrouping_PartialAtEnd()
+    {
+        // Arrange
+        var startDate = new DateTime(2026, 2, 2); // Monday
+        var endDate = new DateTime(2026, 2, 6); // Friday
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().HaveCount(1);
+        data[0].IsPartial.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetAnalytics_IsPartial_WeekGrouping_FullWeek()
+    {
+        // Arrange
+        var startDate = new DateTime(2026, 2, 2); // Monday
+        var endDate = new DateTime(2026, 2, 8); // Sunday
+
+        // Act
+        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+
+        // Assert
+        var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
+        data.Should().HaveCount(1);
+        data[0].IsPartial.Should().BeFalse();
+    }
+
     public void Dispose()
     {
         _context.Dispose();

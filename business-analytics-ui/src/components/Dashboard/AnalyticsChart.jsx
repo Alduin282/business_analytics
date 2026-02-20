@@ -23,6 +23,45 @@ const AnalyticsChart = ({ data, metric = 'totalAmount', color = '#6366f1' }) => 
         return value;
     };
 
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div style={{
+                    backgroundColor: '#1e293b',
+                    padding: '1rem',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+                    backdropFilter: 'blur(8px)'
+                }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem' }}>{label}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
+                            {formatValue(payload[0].value)}
+                        </p>
+                    </div>
+                    {data.isPartial && (
+                        <div style={{
+                            marginTop: '0.75rem',
+                            paddingTop: '0.75rem',
+                            borderTop: '1px solid rgba(255,255,255,0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: '#fbbf24',
+                            fontSize: '0.75rem'
+                        }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                            <span>Incomplete period</span>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        return null;
+    };
+
     if (!data || data.length === 0) {
         return (
             <div style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -56,16 +95,7 @@ const AnalyticsChart = ({ data, metric = 'totalAmount', color = '#6366f1' }) => 
                         axisLine={false}
                         tickFormatter={formatValue}
                     />
-                    <Tooltip
-                        contentStyle={{
-                            backgroundColor: '#1e293b',
-                            border: 'none',
-                            borderRadius: '8px',
-                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                        }}
-                        itemStyle={{ color: '#fff' }}
-                        formatter={(value) => [formatValue(value), 'Revenue']}
-                    />
+                    <Tooltip content={<CustomTooltip />} />
                     <Area
                         type="monotone"
                         dataKey={metric}
