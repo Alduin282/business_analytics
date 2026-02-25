@@ -32,6 +32,7 @@ function App() {
   const [startDate, setStartDate] = useState(initialDates.start);
   const [endDate, setEndDate] = useState(initialDates.end);
   const [loading, setLoading] = useState(false);
+  const [metric, setMetric] = useState('TotalAmount');
 
   useEffect(() => {
     const token = authService.getToken();
@@ -45,13 +46,14 @@ function App() {
     if (isAuthenticated) {
       fetchAnalytics();
     }
-  }, [isAuthenticated, groupBy, startDate, endDate]);
+  }, [isAuthenticated, groupBy, metric, startDate, endDate]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
       const data = await ordersService.getAnalytics({
         groupBy,
+        metric,
         startDate: startDate ? new Date(startDate).toISOString() : null,
         endDate: endDate ? new Date(endDate).toISOString() : null
       });
@@ -73,6 +75,7 @@ function App() {
     setStartDate(defaults.start);
     setEndDate(defaults.end);
     setGroupBy('Month');
+    setMetric('TotalAmount');
   };
 
   if (checkingToken) {
@@ -117,66 +120,59 @@ function App() {
       </nav>
 
       <div className="glass-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h2>Revenue Analytics</h2>
-            <p className="text-muted">Track your performance over time.</p>
+        <div style={{ marginBottom: '2rem' }}>
+          <h2>{metric === 'TotalAmount' ? 'Revenue Analytics' : 'Order Count Analytics'}</h2>
+          <p className="text-muted">Track your performance over time.</p>
+        </div>
+
+        <div className="toolbar">
+          <div className="control-group">
+            <span className="control-label">Metric</span>
+            <select
+              value={metric}
+              onChange={(e) => setMetric(e.target.value)}
+              style={{ width: '180px' }}
+            >
+              <option value="TotalAmount">Total Amount</option>
+              <option value="OrderCount">Order Count</option>
+            </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                style={{ marginBottom: 0, width: '160px', padding: '0.5rem' }}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <label style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>End Date</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                style={{ marginBottom: 0, width: '160px', padding: '0.5rem' }}
-              />
-            </div>
+          <div className="control-group">
+            <span className="control-label">Start Date</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={{ marginBottom: 0, width: '160px', height: '42px' }}
+            />
+          </div>
 
-            <button
-              onClick={handleReset}
-              className="btn-ghost"
-              style={{
-                padding: '0.4rem 0.8rem',
-                marginTop: 'auto',
-                fontSize: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                width: 'auto',
-                borderRadius: '10px',
-                border: '1px solid rgba(255,255,255,0.1)',
-                height: '35px'
-              }}
-              title="Reset to default (1 year)"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-              Reset
-            </button>
+          <div className="control-group">
+            <span className="control-label">End Date</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={{ marginBottom: 0, width: '160px', height: '42px' }}
+            />
+          </div>
 
-            <div className="btn-group" style={{ display: 'flex', gap: '0.25rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem', borderRadius: '8px', height: 'fit-content', marginTop: 'auto' }}>
+          <div className="control-group">
+            <span className="control-label">Period</span>
+            <div className="btn-group">
               {['Day', 'Week', 'Month'].map((period) => (
                 <button
                   key={period}
                   onClick={() => setGroupBy(period)}
-                  className={groupBy === period ? 'btn-primary' : 'btn-ghost'}
                   style={{
-                    padding: '0.4rem 0.8rem',
+                    padding: '0.4rem 1rem',
                     fontSize: '0.75rem',
                     width: 'auto',
                     background: groupBy === period ? 'var(--primary)' : 'transparent',
                     color: groupBy === period ? '#fff' : 'rgba(255,255,255,0.6)',
-                    borderRadius: '6px'
+                    borderRadius: '6px',
+                    height: '32px'
                   }}
                 >
                   {period}
@@ -184,34 +180,61 @@ function App() {
               ))}
             </div>
           </div>
+
+          <button
+            onClick={handleReset}
+            className="btn-ghost"
+            style={{
+              padding: '0 1.2rem',
+              fontSize: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              width: 'auto',
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              height: '42px',
+              background: 'rgba(255,255,255,0.05)',
+              color: 'var(--text-main)',
+              fontWeight: 600
+            }}
+            title="Reset to default (1 year)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            Reset
+          </button>
         </div>
 
         {loading ? (
           <div style={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="spinner"></div> {/* Assume there's a spinner in CSS or just text */}
+            <div className="spinner"></div>
             <p>Loading analytics...</p>
           </div>
         ) : (
-          <AnalyticsChart data={analyticsData} />
+          <AnalyticsChart data={analyticsData} metric={metric} />
         )}
 
         <div className="mt-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(99, 102, 241, 0.1)' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--primary)' }}>Total Revenue</h3>
+            <h3 style={{ fontSize: '1rem', color: 'var(--primary)' }}>
+              {metric === 'TotalAmount' ? 'Total Revenue' : 'Total Orders'}
+            </h3>
             <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-              ${analyticsData.reduce((sum, item) => sum + item.totalAmount, 0).toLocaleString()}
+              {metric === 'TotalAmount' ? '$' : ''}
+              {analyticsData.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
             </p>
           </div>
           <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(34, 211, 238, 0.1)' }}>
             <h3 style={{ fontSize: '1rem', color: 'var(--accent)' }}>Average/Period</h3>
             <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-              ${analyticsData.length > 0
-                ? (analyticsData.reduce((sum, item) => sum + item.totalAmount, 0) / analyticsData.length).toLocaleString(undefined, { maximumFractionDigits: 0 })
+              {metric === 'TotalAmount' ? '$' : ''}
+              {analyticsData.length > 0
+                ? (analyticsData.reduce((sum, item) => sum + item.value, 0) / analyticsData.length).toLocaleString(undefined, { maximumFractionDigits: 0 })
                 : 0}
             </p>
           </div>
           <div className="glass-card" style={{ padding: '1.5rem', background: 'rgba(239, 68, 68, 0.1)' }}>
-            <h3 style={{ fontSize: '1rem', color: 'var(--error)' }}>Periods</h3>
+            <h3 style={{ fontSize: '1rem', color: 'var(--error)' }}>Total Periods</h3>
             <p style={{ fontSize: '1.5rem', fontWeight: 700 }}>{analyticsData.length}</p>
           </div>
         </div>

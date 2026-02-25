@@ -11,9 +11,9 @@ import {
     Area
 } from 'recharts';
 
-const AnalyticsChart = ({ data, metric = 'totalAmount', color = '#6366f1' }) => {
+const AnalyticsChart = ({ data, metric = 'TotalAmount', color = '#6366f1' }) => {
     const formatValue = (value) => {
-        if (metric === 'totalAmount') {
+        if (metric === 'TotalAmount') {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD',
@@ -98,7 +98,7 @@ const AnalyticsChart = ({ data, metric = 'totalAmount', color = '#6366f1' }) => 
                     <Tooltip content={<CustomTooltip />} />
                     <Area
                         type="monotone"
-                        dataKey={metric}
+                        dataKey="value"
                         stroke={color}
                         strokeWidth={3}
                         fillOpacity={1}

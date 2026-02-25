@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 using System.Security.Claims;
 using BusinessAnalytics.API.Models;
 using BusinessAnalytics.API.Models.DTOs;
 using BusinessAnalytics.API.Repositories;
-using Microsoft.VisualBasic;
+using BusinessAnalytics.API.Services.Analytics;
+using BusinessAnalytics.API.Services.Analytics.Handlers;
+using BusinessAnalytics.API.Services.Analytics.Strategies;
 
 namespace BusinessAnalytics.API.Controllers;
 
@@ -17,7 +18,6 @@ public class OrdersController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private const int maxYearsLimit = 5;
-
     private const string DefaultTimeZone = "UTC";
 
     public OrdersController(IUnitOfWork unitOfWork)
@@ -31,6 +31,7 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAnalytics(
         [FromQuery] GroupPeriod groupBy = GroupPeriod.Month,
+        [FromQuery] MetricType metric = MetricType.TotalAmount,
         [FromQuery] DateTime? startDate = null,
         [FromQuery] DateTime? endDate = null)
     {
@@ -41,14 +42,21 @@ public class OrdersController : ControllerBase
         if (!TryResolveTimeZone(timeZoneId, out var tz))
             tz = TimeZoneInfo.Utc;
 
-        if (!TryBuildDateRange(startDate, endDate, tz, out var startDateRange, out var endDateRange, out var validationError))
-            return BadRequest(validationError);
+        try
+        {
+            var range = DateRange.Create(startDate, endDate, tz, maxYearsLimit);
+            var periodHandler = GetPeriodHandler(groupBy);
+            var analyticsStrategy = GetAnalyticsStrategy(metric);
 
-        var rawOrders = await FetchOrdersFromDb(userId, startDateRange, endDateRange, tz);
-        var aggregatedDataDict = AggregateByPeriod(rawOrders, groupBy, tz);
-        var result = FillGaps(aggregatedDataDict, startDateRange, endDateRange, groupBy, tz);
+            var rawOrders = await FetchOrdersFromDb(userId, range, tz);
+            var result = BuildAnalytics(rawOrders, range, periodHandler, analyticsStrategy, tz);
 
-        return Ok(result);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     private static bool TryResolveTimeZone(string timeZoneId, out TimeZoneInfo tz)
@@ -64,52 +72,26 @@ public class OrdersController : ControllerBase
             return false;
         }
     }
-
-    private static bool TryBuildDateRange(
-        DateTime? startDate, DateTime? endDate,
-        TimeZoneInfo tz,
-        out DateTime start, out DateTime end,
-        out string? error)
+    
+    private IPeriodHandler GetPeriodHandler(GroupPeriod groupBy) => groupBy switch
     {
-        var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
-        var endLocal = endDate ?? nowLocal.Date;
-        var startLocal = startDate ?? endLocal.AddYears(-1).Date;
+        GroupPeriod.Day => new DayPeriodHandler(),
+        GroupPeriod.Week => new WeekPeriodHandler(),
+        GroupPeriod.Month => new MonthPeriodHandler(),
+        _ => throw new ArgumentOutOfRangeException(nameof(groupBy))
+    };
 
-        start = startLocal.Date;
-        end   = endLocal.Date.AddDays(1);
-
-        return ValidateDateRange(start, end, maxYearsLimit, out error);
-    }
-
-    private static bool ValidateDateRange(
-        DateTime start,
-        DateTime end,
-        int maxYearsLimit,
-        out string? error)
+    private IAnalyticsStrategy GetAnalyticsStrategy(MetricType metric) => metric switch
     {
-        error = null;
+        MetricType.TotalAmount => new TotalAmountStrategy(),
+        MetricType.OrderCount => new OrderCountStrategy(),
+        _ => throw new ArgumentOutOfRangeException(nameof(metric))
+    };
 
-        if (start > end)
-        {
-            error = "startDate cannot be later than endDate.";
-            return false;
-        }
-
-        if ((end - start).TotalDays > 365 * maxYearsLimit)
-        {
-            error = $"Date range cannot exceed {maxYearsLimit} years.";
-            return false;
-        }
-
-        return true;
-    }
-
-    private async Task<List<(DateTime OrderDate, decimal TotalAmount)>> FetchOrdersFromDb(
-        string userId, DateTime startLocal, DateTime endLocal, TimeZoneInfo tz)
+    private async Task<List<Order>> FetchOrdersFromDb(string userId, DateRange range, TimeZoneInfo tz)
     {
-        // Convert local boundaries from the UI/request to UTC for DB querying
-        var startUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(startLocal, DateTimeKind.Unspecified), tz);
-        var endUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(endLocal, DateTimeKind.Unspecified), tz);
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(range.Start, DateTimeKind.Unspecified), tz);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(range.End, DateTimeKind.Unspecified), tz);
 
         return await _unitOfWork.Repository<Order, Guid>()
             .Query()
@@ -117,98 +99,40 @@ public class OrdersController : ControllerBase
                         o.OrderDate >= startUtc &&
                         o.OrderDate < endUtc &&
                         o.Status != OrderStatus.Cancelled)
-            .Select(o => new { o.OrderDate, o.TotalAmount })
-            .ToListAsync()
-            .ContinueWith(t => t.Result
-                .Select(o => (o.OrderDate, o.TotalAmount))
-                .ToList());
+            .ToListAsync();
     }
 
-    private static Dictionary<string, decimal> AggregateByPeriod(
-        List<(DateTime OrderDate, decimal TotalAmount)> orders,
-        GroupPeriod groupBy,
-        TimeZoneInfo tz)
-    {
-        return orders
-            .GroupBy(o => GetGroupLabel(TimeZoneInfo.ConvertTimeFromUtc(o.OrderDate, tz), groupBy))
-            .ToDictionary(g => g.Key, g => g.Sum(o => o.TotalAmount));
-    }
-
-    private static List<AnalyticsPoint> FillGaps(
-        Dictionary<string, decimal> dataDict,
-        DateTime start,
-        DateTime end,
-        GroupPeriod groupBy,
+    private static List<AnalyticsPoint> BuildAnalytics(
+        List<Order> orders,
+        DateRange range,
+        IPeriodHandler periodHandler,
+        IAnalyticsStrategy strategy,
         TimeZoneInfo tz)
     {
         var result = new List<AnalyticsPoint>();
-        var seenLabels = new HashSet<string>();
+        var currentLocal = periodHandler.AlignToStart(range.Start);
 
-        var currentUtc = AlignToStartOfPeriod(start.Date, groupBy);
-
-        while (currentUtc < end.Date)
+        while (currentLocal < range.End)
         {
-            var localDate = TimeZoneInfo.ConvertTimeFromUtc(
-                DateTime.SpecifyKind(currentUtc, DateTimeKind.Utc), tz);
-            var label = GetGroupLabel(localDate, groupBy);
-
-            if (seenLabels.Add(label))
+            var periodEnd = periodHandler.GetNext(currentLocal);
+            var label = periodHandler.GetLabel(currentLocal);
+            
+            var ordersInPeriod = orders.Where(o => 
             {
-                bool isPartial = IsPeriodPartial(localDate, groupBy, start, end);
-                result.Add(new AnalyticsPoint(
-                    Label: label,
-                    TotalAmount: dataDict.GetValueOrDefault(label, 0m),
-                    IsPartial: isPartial));
-            }
+                var localOrderDate = TimeZoneInfo.ConvertTimeFromUtc(o.OrderDate, tz);
+                return localOrderDate >= currentLocal && localOrderDate < periodEnd;
+            });
 
-            currentUtc = currentUtc.AddDays(1);
+            bool isPartial = periodHandler.IsPartial(currentLocal, range);
+            result.Add(new AnalyticsPoint(
+                Label: label,
+                Value: strategy.CalculateValue(ordersInPeriod),
+                IsPartial: isPartial));
+
+            currentLocal = periodEnd;
         }
 
         return result;
     }
-
-    private static bool IsPeriodPartial(DateTime localDate, GroupPeriod groupBy, DateTime requestStart, DateTime requestEnd)
-    {
-        if (groupBy == GroupPeriod.Day) return false;
-
-        DateTime periodStart;
-        DateTime periodEnd;
-
-        if (groupBy == GroupPeriod.Month)
-        {
-            periodStart = new DateTime(localDate.Year, localDate.Month, 1);
-            periodEnd = periodStart.AddMonths(1);
-        }
-        else
-        {
-            int diff = (7 + (localDate.DayOfWeek - DayOfWeek.Monday)) % 7;
-            periodStart = localDate.AddDays(-diff).Date;
-            periodEnd = periodStart.AddDays(7);
-        }
-
-        return requestStart > periodStart || requestEnd < periodEnd;
-    }
-
-    private static DateTime AlignToStartOfPeriod(DateTime date, GroupPeriod groupBy)
-    {
-        if (groupBy != GroupPeriod.Week) return date;
-        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
-        return date.AddDays(-diff);
-    }
-
-    private static string GetGroupLabel(DateTime localDate, GroupPeriod groupBy) =>
-    groupBy switch
-    {
-        GroupPeriod.Day   => localDate.ToString("yyyy-MM-dd"),
-        GroupPeriod.Week  => GetWeekRangeLabel(localDate),
-        GroupPeriod.Month => localDate.ToString("yyyy-MM"),
-        _                 => localDate.ToString("yyyy-MM-dd")
-    };
-
-    private static string GetWeekRangeLabel(DateTime localDate)
-    {
-        var startOfWeek = ISOWeek.ToDateTime(ISOWeek.GetYear(localDate), ISOWeek.GetWeekOfYear(localDate), DayOfWeek.Monday);
-        var endOfWeek = startOfWeek.AddDays(6);
-        return $"{startOfWeek:dd.MM} - {endOfWeek:dd.MM}";
-    }
 }
+

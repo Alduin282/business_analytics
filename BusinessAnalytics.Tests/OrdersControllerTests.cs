@@ -69,14 +69,14 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: startDate, endDate: endDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
 
         data.Should().HaveCount(1);
-        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(0);
+        data.First(d => d.Label == "2023-01-01").Value.Should().Be(0);
     }
 
     [Fact]
@@ -87,14 +87,14 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2023, 1, 1);
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: startDate, endDate: endDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
 
         data.Should().HaveCount(1);
-        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(0); // Gap filling
+        data.First(d => d.Label == "2023-01-01").Value.Should().Be(0); // Gap filling
     }
 
     [Fact]
@@ -113,15 +113,15 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: startDate, endDate: endDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
 
         data.Should().HaveCount(2);
-        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(150);
-        data.First(d => d.Label == "2023-01-02").TotalAmount.Should().Be(500);
+        data.First(d => d.Label == "2023-01-01").Value.Should().Be(150);
+        data.First(d => d.Label == "2023-01-02").Value.Should().Be(500);
     }
 
     [Fact]
@@ -140,15 +140,15 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
 
         data.Should().HaveCount(2);
-        data.First(d => d.Label == "2026-01").TotalAmount.Should().Be(150);
-        data.First(d => d.Label == "2026-02").TotalAmount.Should().Be(500);
+        data.First(d => d.Label == "2026-01").Value.Should().Be(150);
+        data.First(d => d.Label == "2026-02").Value.Should().Be(500);
     }
 
     [Fact]
@@ -167,15 +167,15 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Week, startDate: startDate, endDate: endDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
 
         data.Should().HaveCount(2);
-        data.First(d => d.Label == "02.02 - 08.02").TotalAmount.Should().Be(150);
-        data.First(d => d.Label == "09.02 - 15.02").TotalAmount.Should().Be(500);
+        data.First(d => d.Label == "02.02 - 08.02").Value.Should().Be(150);
+        data.First(d => d.Label == "09.02 - 15.02").Value.Should().Be(500);
     }
 
     [Fact]
@@ -193,12 +193,12 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
-        data.First(d => d.Label == "2023-01").TotalAmount.Should().Be(DefaultTotalAmount);
+        data.First(d => d.Label == "2023-01").Value.Should().Be(DefaultTotalAmount);
     }
 
     [Fact]
@@ -217,15 +217,15 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, new DateTime(2023,1,1), new DateTime(2023,1,2));
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: new DateTime(2023,1,1), endDate: new DateTime(2023,1,2));
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
         
         // In Moscow time, Jan 1st should be 0, Jan 2nd should be 100
-        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(0);
-        data.First(d => d.Label == "2023-01-02").TotalAmount.Should().Be(DefaultTotalAmount);
+        data.First(d => d.Label == "2023-01-01").Value.Should().Be(0);
+        data.First(d => d.Label == "2023-01-02").Value.Should().Be(DefaultTotalAmount);
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, new DateTime(2023, 1, 1), new DateTime(2023, 1, 1));
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: new DateTime(2023, 1, 1), endDate: new DateTime(2023, 1, 1));
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -249,7 +249,7 @@ public class OrdersControllerTests : IDisposable
 
         // The order from Dec 31st UTC should be counted for Jan 1st Local
         data.Should().HaveCount(1);
-        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(DefaultTotalAmount);
+        data.First(d => d.Label == "2023-01-01").Value.Should().Be(DefaultTotalAmount);
     }
 
     [Fact]
@@ -267,14 +267,14 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, _defaultStartDate, _defaultStartDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: _defaultStartDate, endDate: _defaultStartDate);
     
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
         
         // Если используется UTC (дефолт), заказ останется 1-го числа.
-        data.First(d => d.Label == "2023-01-01").TotalAmount.Should().Be(DefaultTotalAmount * 2);
+        data.First(d => d.Label == "2023-01-01").Value.Should().Be(DefaultTotalAmount * 2);
     }
 
     [Fact]
@@ -285,11 +285,11 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2023, 1, 1);
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: startDate, endDate: endDate);
 
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>()
-            .Which.Value.Should().Be("startDate cannot be later than endDate.");
+            .Which.Value.Should().Be("Start date cannot be later than end date.");
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2026, 1, 2); // > 5 years
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
 
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>()
@@ -314,7 +314,7 @@ public class OrdersControllerTests : IDisposable
         SetupAnonymousUser();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, _defaultStartDate, _defaultStartDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: _defaultStartDate, endDate: _defaultStartDate);
 
         // Assert
         result.Should().BeOfType<UnauthorizedResult>();
@@ -332,12 +332,12 @@ public class OrdersControllerTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, _defaultStartDate, _defaultStartDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: _defaultStartDate, endDate: _defaultStartDate);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
-        data.First(d => d.Label == "2023-01").TotalAmount.Should().Be(DefaultTotalAmount);
+        data.First(d => d.Label == "2023-01").Value.Should().Be(DefaultTotalAmount);
     }
 
     private void SetupAnonymousUser()
@@ -357,7 +357,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2023, 1, 1, 0, 0, 1);
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Day, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Day, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
@@ -372,7 +372,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2023, 1, 31);
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
@@ -388,7 +388,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2023, 1, 15); // End mid-month
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
@@ -404,7 +404,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2023, 1, 31);
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Month, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
@@ -420,7 +420,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2026, 2, 8); // Sunday
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Week, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
@@ -436,7 +436,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2026, 2, 6); // Friday
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Week, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
@@ -452,7 +452,7 @@ public class OrdersControllerTests : IDisposable
         var endDate = new DateTime(2026, 2, 8); // Sunday
 
         // Act
-        var result = await _controller.GetAnalytics(GroupPeriod.Week, startDate, endDate);
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Week, startDate: startDate, endDate: endDate);
 
         // Assert
         var data = ((OkObjectResult)result).Value as List<AnalyticsPoint>;
