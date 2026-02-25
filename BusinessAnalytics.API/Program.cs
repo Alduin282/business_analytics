@@ -6,6 +6,10 @@ using Microsoft.IdentityModel.Tokens;
 using BusinessAnalytics.API.Data;
 using BusinessAnalytics.API.Models;
 using BusinessAnalytics.API.Repositories;
+using BusinessAnalytics.API.Services.Import.Parsing;
+using BusinessAnalytics.API.Services.Import.Validation;
+using BusinessAnalytics.API.Services.Import.Pipeline;
+using BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 
 // на время разработки упрощаем требования ко всему , небезопасно для прода 
 // TODO: в проде заменить на норм требования
@@ -58,6 +62,22 @@ builder.Services.AddAuthentication(options =>
 // Repositories
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Import — Parsing (Strategy + Factory)
+builder.Services.AddScoped<IFileParser, CsvFileParser>();
+builder.Services.AddScoped<FileParserFactory>();
+
+// Import — Validation (Chain of Responsibility)
+builder.Services.AddScoped<HeaderValidator>();
+builder.Services.AddScoped<DataTypeValidator>();
+builder.Services.AddScoped<BusinessRuleValidator>();
+
+// Import — Pipeline Stages (order matters!)
+builder.Services.AddScoped<IImportPipelineStage, ParseStage>();
+builder.Services.AddScoped<IImportPipelineStage, ValidationStage>();
+builder.Services.AddScoped<IImportPipelineStage, TransformStage>();
+builder.Services.AddScoped<IImportPipelineStage, PersistStage>();
+builder.Services.AddScoped<ImportPipeline>();
 
 // CORS
 builder.Services.AddCors(options =>

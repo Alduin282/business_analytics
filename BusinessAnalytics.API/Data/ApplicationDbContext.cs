@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<ImportSession> ImportSessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -30,6 +31,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Order>()
             .Property(o => o.Status)
             .HasConversion<string>();
+        
+        // ImportSession -> Orders (one-to-many)
+        builder.Entity<Order>()
+            .HasOne(o => o.ImportSession)
+            .WithMany(s => s.Orders)
+            .HasForeignKey(o => o.ImportSessionId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

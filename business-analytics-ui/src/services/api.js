@@ -41,6 +41,16 @@ export const ordersService = {
     const response = await api.get('/orders/analytics', { params });
     return response.data;
   },
+  importOrders: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/import/orders', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 export default api;

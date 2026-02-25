@@ -21,4 +21,7 @@ public class Order
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     public List<OrderItem> Items { get; set; } = new();
+    
+    public Guid? ImportSessionId { get; set; }
+    public ImportSession? ImportSession { get; set; }
 }
