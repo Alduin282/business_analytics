@@ -2,9 +2,6 @@ using BusinessAnalytics.API.Models.DTOs;
 
 namespace BusinessAnalytics.API.Services.Import.Validation;
 
-/// <summary>
-/// First link in chain: validates that all required CSV headers are present.
-/// </summary>
 public class HeaderValidator : BaseImportValidator
 {
     private static readonly string[] RequiredHeaders =
@@ -16,14 +13,15 @@ public class HeaderValidator : BaseImportValidator
     protected override Task<List<ValidationError>> ValidateCoreAsync(List<OrderImportRow> rows, string[] headers)
     {
         var errors = new List<ValidationError>();
-        var normalizedHeaders = headers.Select(h => h.Trim().ToLowerInvariant()).ToHashSet();
+        var presentHeaders = headers.Select(h => h.Trim().ToLowerInvariant()).ToHashSet();
 
-        foreach (var required in RequiredHeaders)
+        // Identify missing headers
+        var missing = RequiredHeaders
+            .Where(required => !presentHeaders.Contains(required.ToLowerInvariant()));
+
+        foreach (var header in missing)
         {
-            if (!normalizedHeaders.Contains(required.ToLowerInvariant()))
-            {
-                errors.Add(new ValidationError(1, required, $"Missing required column: '{required}'"));
-            }
+            errors.Add(new ValidationError(1, header, $"Missing required column: '{header}'"));
         }
 
         if (rows.Count == 0 && errors.Count == 0)

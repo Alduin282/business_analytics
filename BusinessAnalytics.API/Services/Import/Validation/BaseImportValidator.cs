@@ -2,10 +2,6 @@ using BusinessAnalytics.API.Models.DTOs;
 
 namespace BusinessAnalytics.API.Services.Import.Validation;
 
-/// <summary>
-/// Base class for import validators (Chain of Responsibility).
-/// Handles chain linking and delegates to the next validator.
-/// </summary>
 public abstract class BaseImportValidator : IImportValidator
 {
     public IImportValidator? Next { get; set; }

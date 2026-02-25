@@ -21,12 +21,6 @@ public class PersistStage : IImportPipelineStage
     {
         try
         {
-            var customerRepo = _unitOfWork.Repository<Customer, Guid>();
-            var categoryRepo = _unitOfWork.Repository<Category, int>();
-            var productRepo = _unitOfWork.Repository<Product, Guid>();
-            var orderRepo = _unitOfWork.Repository<Order, Guid>();
-            var sessionRepo = _unitOfWork.Repository<ImportSession, Guid>();
-
             // Create ImportSession
             var session = new ImportSession
             {
@@ -38,32 +32,13 @@ public class PersistStage : IImportPipelineStage
                 ItemsCount = context.Orders.Sum(o => o.Items.Count)
             };
 
-            await sessionRepo.AddAsync(session);
+            await _unitOfWork.Repository<ImportSession, Guid>().AddAsync(session);
 
-            // Persist new Categories
-            foreach (var category in context.CategoriesCreated)
-            {
-                await categoryRepo.AddAsync(category);
-            }
-
-            // Persist new Customers
-            foreach (var customer in context.CustomersCreated)
-            {
-                await customerRepo.AddAsync(customer);
-            }
-
-            // Persist new Products
-            foreach (var product in context.ProductsCreated)
-            {
-                await productRepo.AddAsync(product);
-            }
-
-            // Persist Orders with ImportSessionId
-            foreach (var order in context.Orders)
-            {
-                order.ImportSessionId = session.Id;
-                await orderRepo.AddAsync(order);
-            }
+            // Persist all entities using generic helper
+            await PersistEntitiesAsync<Category, int>(context.CategoriesCreated);
+            await PersistEntitiesAsync<Customer, Guid>(context.CustomersCreated);
+            await PersistEntitiesAsync<Product, Guid>(context.ProductsCreated);
+            await PersistEntitiesAsync<Order, Guid>(context.Orders, o => o.ImportSessionId = session.Id);
 
             await _unitOfWork.CompleteAsync();
 
@@ -77,5 +52,15 @@ public class PersistStage : IImportPipelineStage
         }
 
         return context;
+    }
+
+    private async Task PersistEntitiesAsync<T, TKey>(IEnumerable<T> entities, Action<T>? prepare = null) where T : class
+    {
+        var repo = _unitOfWork.Repository<T, TKey>();
+        foreach (var entity in entities)
+        {
+            prepare?.Invoke(entity);
+            await repo.AddAsync(entity);
+        }
     }
 }

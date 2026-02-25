@@ -1,8 +1,5 @@
 namespace BusinessAnalytics.API.Services.Import.Pipeline;
 
-/// <summary>
-/// Pipeline orchestrator. Executes stages sequentially, aborting on errors.
-/// </summary>
 public class ImportPipeline
 {
     private readonly IEnumerable<IImportPipelineStage> _stages;

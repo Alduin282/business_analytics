@@ -34,7 +34,7 @@ public class ParseStage : IImportPipelineStage
             context.FileStream.Position = 0;
             context.ParsedRows = await parser.ParseAsync(context.FileStream);
         }
-        catch (NotSupportedException ex)
+        catch (Exception ex)
         {
             context.Errors.Add(new Validation.ValidationError(0, "File", ex.Message));
             context.IsAborted = true;

@@ -4,10 +4,6 @@ using BusinessAnalytics.API.Services.Import.Validation;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline;
 
-/// <summary>
-/// Context object passed through all pipeline stages.
-/// Accumulates data as it moves through Parse → Validate → Transform → Persist.
-/// </summary>
 public class ImportContext
 {
     // Input

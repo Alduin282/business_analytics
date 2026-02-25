@@ -1,0 +1,32 @@
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+  BusinessAnalytics.API -> C:\repos\income_analitics\BusinessAnalytics.API\bin\Debug\net10.0\BusinessAnalytics.API.dll
+  BusinessAnalytics.Tests -> C:\repos\income_analitics\BusinessAnalytics.Tests\bin\Debug\net10.0\BusinessAnalytics.Tests.dll
+Тестовый запуск для C:\repos\income_analitics\BusinessAnalytics.Tests\bin\Debug\net10.0\BusinessAnalytics.Tests.dll (.NETCoreApp,Version=v10.0)
+Версия VSTest 18.0.1 (x64)
+
+Запуск выполнения тестов; подождите...
+Общее количество тестовых файлов (1), соответствующих указанному шаблону.
+[xUnit.net 00:00:00.20]     BusinessAnalytics.Tests.Services.Import.Pipeline.Stages.PersistStageTests.ExecuteAsync_Aborts_WhenExceptionOccurs [FAIL]
+  Не пройден BusinessAnalytics.Tests.Services.Import.Pipeline.Stages.PersistStageTests.ExecuteAsync_Aborts_WhenExceptionOccurs [73 ms]
+  Сообщение об ошибке:
+   Expected result.Errors {
+    BusinessAnalytics.API.Services.Import.Validation.ValidationError
+    {
+        Column = "Database",
+        Message = "Failed to save data: Object reference not set to an instance of an object.",
+        RowNumber = 0
+    }
+} to have an item matching e.Message.Contains("DB Down").
+  Трассировка стека:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Collections.GenericCollectionAssertions`3.Contain(Expression`1 predicate, String because, Object[] becauseArgs)
+   at BusinessAnalytics.Tests.Services.Import.Pipeline.Stages.PersistStageTests.ExecuteAsync_Aborts_WhenExceptionOccurs() in C:\repos\income_analitics\BusinessAnalytics.Tests\Services\Import\Pipeline\Stages\PersistStageTests.cs:line 77
+--- End of stack trace from previous location ---
+
+Не пройден!: не пройдено     1, пройдено     1, пропущено     0, всего     2, длительность 96 ms. - BusinessAnalytics.Tests.dll (net10.0)
