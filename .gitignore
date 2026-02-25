@@ -41,5 +41,5 @@ visualize_analytics.py
 revenue_chart.png
 
 # Build and Test Logs
-build_errors.txt
-test_results.txt
+*.txt
+*.png
