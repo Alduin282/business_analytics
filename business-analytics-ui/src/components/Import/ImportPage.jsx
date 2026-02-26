@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ordersService } from '../../services/api';
+import ImportHistory from './ImportHistory';
 
 const ImportPage = ({ onBack, onImportSuccess }) => {
     const [file, setFile] = useState(null);
@@ -8,6 +9,7 @@ const ImportPage = ({ onBack, onImportSuccess }) => {
     const [error, setError] = useState(null);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef(null);
+    const historyRef = useRef(null);
 
     const handleDrag = (e) => {
         e.preventDefault();
@@ -50,6 +52,7 @@ const ImportPage = ({ onBack, onImportSuccess }) => {
             const data = await ordersService.importOrders(file);
             setResult(data);
             if (onImportSuccess) onImportSuccess();
+            if (historyRef.current) historyRef.current.refresh();
         } catch (err) {
             console.error('Import failed:', err);
             if (err.response && err.response.data) {
@@ -181,6 +184,8 @@ const ImportPage = ({ onBack, onImportSuccess }) => {
                     <li>Status: Must be one of <strong>Pending, Processing, Shipped, Delivered, Cancelled</strong></li>
                 </ul>
             </div>
+
+            <ImportHistory ref={historyRef} />
         </div>
     );
 };

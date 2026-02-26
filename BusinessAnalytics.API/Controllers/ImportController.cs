@@ -1,8 +1,11 @@
 using System.Security.Claims;
+using BusinessAnalytics.API.Models;
 using BusinessAnalytics.API.Models.DTOs;
+using BusinessAnalytics.API.Repositories;
 using BusinessAnalytics.API.Services.Import.Pipeline;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BusinessAnalytics.API.Controllers;
 
@@ -12,10 +15,12 @@ namespace BusinessAnalytics.API.Controllers;
 public class ImportController : ControllerBase
 {
     private readonly ImportPipeline _pipeline;
+    private readonly IUnitOfWork _uow;
 
-    public ImportController(ImportPipeline pipeline)
+    public ImportController(ImportPipeline pipeline, IUnitOfWork uow)
     {
         _pipeline = pipeline;
+        _uow = uow;
     }
 
     [HttpPost("orders")]
@@ -51,5 +56,29 @@ public class ImportController : ControllerBase
             return BadRequest(importResult);
 
         return Ok(importResult);
+    }
+
+    [HttpGet("history")]
+    public async Task<ActionResult<IEnumerable<ImportSessionDto>>> GetHistory()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var sessions = await _uow.Repository<ImportSession, Guid>()
+            .Query()
+            .Where(s => s.UserId == userId)
+            .OrderByDescending(s => s.ImportedAt)
+            .Select(s => new ImportSessionDto
+            {
+                Id = s.Id,
+                FileName = s.FileName,
+                ImportedAt = s.ImportedAt,
+                OrdersCount = s.OrdersCount,
+                ItemsCount = s.ItemsCount
+            })
+            .ToListAsync();
+
+        return Ok(sessions);
     }
 }

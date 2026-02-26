@@ -51,6 +51,10 @@ export const ordersService = {
     });
     return response.data;
   },
+  getImportHistory: async () => {
+    const response = await api.get('/import/history');
+    return response.data;
+  },
 };
 
 export default api;
