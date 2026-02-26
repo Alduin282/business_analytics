@@ -9,6 +9,8 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using BusinessAnalytics.API.Services.Events;
 
 namespace BusinessAnalytics.Tests;
 
@@ -16,6 +18,7 @@ public class ImportControllerTests : IDisposable
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _uow;
+    private readonly Mock<IImportEventDispatcher> _dispatcherMock;
     private readonly ImportController _controller;
     private const string TestUserId = "user-123";
 
@@ -27,10 +30,11 @@ public class ImportControllerTests : IDisposable
 
         _context = new ApplicationDbContext(options);
         _uow = new UnitOfWork(_context);
+        _dispatcherMock = new Mock<IImportEventDispatcher>();
         
-        var pipeline = new ImportPipeline(new List<IImportPipelineStage>());
+        var pipeline = new ImportPipeline(new List<IImportPipelineStage>(), _dispatcherMock.Object);
         
-        _controller = new ImportController(pipeline, _uow);
+        _controller = new ImportController(pipeline, _uow, _dispatcherMock.Object);
         
         SetupUser(TestUserId);
     }
@@ -159,6 +163,72 @@ public class ImportControllerTests : IDisposable
         data.Should().HaveCount(2);
         data[0].FileName.Should().Be("new.csv");
         data[1].FileName.Should().Be("old.csv");
+    }
+
+    [Fact]
+    public async Task Rollback_ValidSession_TogglesFlag()
+    {
+        // Arrange
+        var session = new ImportSession 
+        { 
+            Id = Guid.NewGuid(), 
+            UserId = TestUserId, 
+            FileName = "test.csv", 
+            FileHash = "hash1",
+            IsRolledBack = false
+        };
+        _context.ImportSessions.Add(session);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.Rollback(session.Id);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var data = okResult.Value.ToString();
+        data.Should().Contain("isRolledBack = True");
+        
+        var updatedSession = await _context.ImportSessions.FindAsync(session.Id);
+        updatedSession.IsRolledBack.Should().BeTrue();
+
+        _dispatcherMock.Verify(d => d.NotifyAsync(It.Is<ImportActivityEvent>(e => 
+            e.UserId == TestUserId && 
+            e.Action == ImportAction.RolledBack && 
+            e.SessionId == session.Id)), Times.Once);
+    }
+
+    [Fact]
+    public async Task Rollback_Unauthorized_ReturnsUnauthorized()
+    {
+        // Arrange
+        SetupAnonymousUser();
+
+        // Act
+        var result = await _controller.Rollback(Guid.NewGuid());
+
+        // Assert
+        result.Should().BeOfType<UnauthorizedResult>();
+    }
+
+    [Fact]
+    public async Task Rollback_OtherUserSession_ReturnsNotFound()
+    {
+        // Arrange
+        var otherSession = new ImportSession 
+        { 
+            Id = Guid.NewGuid(), 
+            UserId = "other-user", 
+            FileName = "other.csv", 
+            FileHash = "hash2"
+        };
+        _context.ImportSessions.Add(otherSession);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.Rollback(otherSession.Id);
+
+        // Assert
+        result.Should().BeOfType<NotFoundResult>();
     }
 
     public void Dispose()

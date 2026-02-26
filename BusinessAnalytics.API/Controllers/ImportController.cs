@@ -3,6 +3,7 @@ using BusinessAnalytics.API.Models;
 using BusinessAnalytics.API.Models.DTOs;
 using BusinessAnalytics.API.Repositories;
 using BusinessAnalytics.API.Services.Import.Pipeline;
+using BusinessAnalytics.API.Services.Events;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,13 @@ public class ImportController : ControllerBase
 {
     private readonly ImportPipeline _pipeline;
     private readonly IUnitOfWork _uow;
+    private readonly IImportEventDispatcher _dispatcher;
 
-    public ImportController(ImportPipeline pipeline, IUnitOfWork uow)
+    public ImportController(ImportPipeline pipeline, IUnitOfWork uow, IImportEventDispatcher dispatcher)
     {
         _pipeline = pipeline;
         _uow = uow;
+        _dispatcher = dispatcher;
     }
 
     [HttpPost("orders")]
@@ -75,10 +78,41 @@ public class ImportController : ControllerBase
                 FileName = s.FileName,
                 ImportedAt = s.ImportedAt,
                 OrdersCount = s.OrdersCount,
-                ItemsCount = s.ItemsCount
+                ItemsCount = s.ItemsCount,
+                IsRolledBack = s.IsRolledBack
             })
             .ToListAsync();
 
         return Ok(sessions);
+    }
+
+    [HttpPost("rollback/{id}")]
+    public async Task<IActionResult> Rollback(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var session = await _uow.Repository<ImportSession, Guid>()
+            .Query()
+            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
+
+        if (session == null)
+            return NotFound();
+
+        session.IsRolledBack = !session.IsRolledBack;
+        await _uow.CompleteAsync();
+
+        await _dispatcher.NotifyAsync(new ImportActivityEvent(
+            userId,
+            session.IsRolledBack ? ImportAction.RolledBack : ImportAction.Imported,
+            session.Id,
+            session.FileName,
+            DateTime.UtcNow,
+            session.OrdersCount,
+            session.IsRolledBack ? "User rolled back the session" : "User restored the session"
+        ));
+
+        return Ok(new { success = true, isRolledBack = session.IsRolledBack });
     }
 }

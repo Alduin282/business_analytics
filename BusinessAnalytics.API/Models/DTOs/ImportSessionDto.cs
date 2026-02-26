@@ -7,4 +7,5 @@ public class ImportSessionDto
     public DateTime ImportedAt { get; set; }
     public int OrdersCount { get; set; }
     public int ItemsCount { get; set; }
+    public bool IsRolledBack { get; set; }
 }

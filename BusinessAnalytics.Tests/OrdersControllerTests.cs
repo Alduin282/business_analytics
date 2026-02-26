@@ -460,6 +460,50 @@ public class OrdersControllerTests : IDisposable
         data[0].IsPartial.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task GetAnalytics_RolledBackSession_Excluded()
+    {
+        // Arrange
+        var startDate = new DateTime(2023, 1, 1);
+        var endDate = new DateTime(2023, 1, 31);
+        
+        var rolledBackSession = new ImportSession
+        {
+            Id = Guid.NewGuid(),
+            UserId = TestUserId,
+            FileName = "rolled-back.csv",
+            IsRolledBack = true,
+            FileHash = "hash-1"
+        };
+        
+        var activeSession = new ImportSession
+        {
+            Id = Guid.NewGuid(),
+            UserId = TestUserId,
+            FileName = "active.csv",
+            IsRolledBack = false,
+            FileHash = "hash-2"
+        };
+
+        _context.ImportSessions.AddRange(rolledBackSession, activeSession);
+        
+        _context.Orders.AddRange(
+            _orderBuilder.WithDate(new DateTime(2023, 1, 10)).WithAmount(100).WithSession(rolledBackSession.Id).Build(),
+            _orderBuilder.WithDate(new DateTime(2023, 1, 11)).WithAmount(200).WithSession(activeSession.Id).Build()
+        );
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.GetAnalytics(groupBy: GroupPeriod.Month, startDate: startDate, endDate: endDate);
+
+        // Assert
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var data = okResult.Value.Should().BeOfType<List<AnalyticsPoint>>().Subject;
+        
+        // Only the order from the active session (200) should be counted
+        data.First(d => d.Label == "2023-01").Value.Should().Be(200);
+    }
+
     public void Dispose()
     {
         _context.Dispose();

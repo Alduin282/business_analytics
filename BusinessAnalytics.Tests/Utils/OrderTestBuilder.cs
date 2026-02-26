@@ -8,9 +8,17 @@ public class OrderTestBuilder
     decimal _totalAmount = 100;
     OrderStatus _status = OrderStatus.Delivered;
 
+    Guid? _importSessionId = null;
+
     public OrderTestBuilder(string userId)
     {
         _userId = userId;
+    }
+
+    public OrderTestBuilder WithSession(Guid? sessionId)
+    {
+        _importSessionId = sessionId;
+        return this;
     }
 
     public OrderTestBuilder WithDate(DateTime date)
@@ -43,6 +51,7 @@ public class OrderTestBuilder
         OrderDate = _oderDate,
         TotalAmount = _totalAmount,
         UserId = _userId,
-        Status = _status
+        Status = _status,
+        ImportSessionId = _importSessionId
     };
 }

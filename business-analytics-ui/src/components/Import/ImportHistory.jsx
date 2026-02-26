@@ -36,7 +36,23 @@ const ImportHistory = forwardRef((props, ref) => {
             hour: '2-digit',
             minute: '2-digit'
         };
-        return new Date(dateString).toLocaleDateString(undefined, options);
+        // Ensure dateString is treated as UTC if it doesn't have a timezone specifier
+        const date = dateString.endsWith('Z') ? new Date(dateString) : new Date(dateString + 'Z');
+        return date.toLocaleString(undefined, options);
+    };
+
+    const handleRollback = async (id) => {
+        if (!window.confirm('Are you sure you want to toggle rollback for this session? This will affect analytics data.')) {
+            return;
+        }
+
+        try {
+            await ordersService.rollbackImport(id);
+            await fetchHistory();
+        } catch (err) {
+            console.error('Failed to rollback import:', err);
+            alert('Failed to rollback import.');
+        }
     };
 
     if (loading && history.length === 0) {
@@ -77,28 +93,32 @@ const ImportHistory = forwardRef((props, ref) => {
                     <table className="error-table">
                         <thead>
                             <tr>
-                                <th style={{ width: '40%' }}>File Name</th>
-                                <th style={{ width: '30%' }}>Import Date</th>
-                                <th style={{ textAlign: 'right', paddingRight: '1.5rem' }}>Orders</th>
-                                <th style={{ textAlign: 'right' }}>Items</th>
+                                <th style={{ width: '35%' }}>File Name</th>
+                                <th style={{ width: '25%' }}>Import Date</th>
+                                <th style={{ textAlign: 'right', paddingRight: '1rem' }}>Orders</th>
+                                <th style={{ textAlign: 'right', paddingRight: '1rem' }}>Items</th>
+                                <th style={{ textAlign: 'center' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {history.map((session) => (
-                                <tr key={session.id}>
+                                <tr key={session.id} style={session.isRolledBack ? { opacity: 0.6 } : {}}>
                                     <td>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={session.isRolledBack ? "var(--muted)" : "var(--primary)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                             <span style={{ fontWeight: 500 }}>{session.fileName}</span>
+                                            {session.isRolledBack && (
+                                                <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.2)', color: 'var(--error)', fontSize: '0.7rem' }}>Rolled Back</span>
+                                            )}
                                         </div>
                                     </td>
                                     <td>{formatDate(session.importedAt)}</td>
-                                    <td style={{ textAlign: 'right', paddingRight: '1.5rem' }}>
+                                    <td style={{ textAlign: 'right', paddingRight: '1rem' }}>
                                         <span className="badge badge-primary" style={{ minWidth: '32px', display: 'inline-block', textAlign: 'center' }}>
                                             {session.ordersCount}
                                         </span>
                                     </td>
-                                    <td style={{ textAlign: 'right' }}>
+                                    <td style={{ textAlign: 'right', paddingRight: '1rem' }}>
                                         <span className="badge" style={{
                                             background: 'rgba(34, 211, 238, 0.2)',
                                             color: 'var(--accent)',
@@ -108,6 +128,22 @@ const ImportHistory = forwardRef((props, ref) => {
                                         }}>
                                             {session.itemsCount}
                                         </span>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <button
+                                            onClick={() => handleRollback(session.id)}
+                                            className="btn-ghost"
+                                            style={{
+                                                width: 'auto',
+                                                padding: '0.4rem 0.8rem',
+                                                fontSize: '0.8rem',
+                                                color: session.isRolledBack ? 'var(--primary)' : 'var(--error)',
+                                                border: `1px solid ${session.isRolledBack ? 'var(--primary)' : 'var(--error)'}`,
+                                                background: 'transparent'
+                                            }}
+                                        >
+                                            {session.isRolledBack ? 'Restore' : 'Rollback'}
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

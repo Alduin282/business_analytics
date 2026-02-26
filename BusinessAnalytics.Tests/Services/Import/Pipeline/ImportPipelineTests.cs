@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 using BusinessAnalytics.API.Services.Import.Pipeline;
+using BusinessAnalytics.API.Services.Events;
+using BusinessAnalytics.API.Models;
 using FluentAssertions;
 using Moq;
 
@@ -24,7 +21,8 @@ public class ImportPipelineTests
         stage2.Setup(s => s.ExecuteAsync(It.IsAny<ImportContext>()))
               .ReturnsAsync((ImportContext ctx) => ctx);
 
-        var pipeline = new ImportPipeline(new[] { stage1.Object, stage2.Object });
+        var dispatcher = new Mock<IImportEventDispatcher>();
+        var pipeline = new ImportPipeline([stage1.Object, stage2.Object], dispatcher.Object);
 
         // Act
         var result = await pipeline.ExecuteAsync(context);
@@ -33,6 +31,11 @@ public class ImportPipelineTests
         stage1.Verify(s => s.ExecuteAsync(context), Times.Once);
         stage2.Verify(s => s.ExecuteAsync(context), Times.Once);
         result.Should().Be(context);
+
+        dispatcher.Verify(d => d.NotifyAsync(It.Is<ImportActivityEvent>(e => 
+            e.UserId == context.UserId && 
+            e.Action == ImportAction.Imported && 
+            e.FileName == context.FileName)), Times.Once);
     }
 
     [Fact]
@@ -46,7 +49,8 @@ public class ImportPipelineTests
         stage1.Setup(s => s.ExecuteAsync(It.IsAny<ImportContext>()))
               .ReturnsAsync((ImportContext ctx) => { ctx.IsAborted = true; return ctx; });
         
-        var pipeline = new ImportPipeline(new[] { stage1.Object, stage2.Object });
+        var dispatcher = new Mock<IImportEventDispatcher>();
+        var pipeline = new ImportPipeline([stage1.Object, stage2.Object], dispatcher.Object);
 
         // Act
         await pipeline.ExecuteAsync(context);
@@ -70,7 +74,8 @@ public class ImportPipelineTests
                   return ctx; 
               });
         
-        var pipeline = new ImportPipeline(new[] { stage1.Object, stage2.Object });
+        var dispatcher = new Mock<IImportEventDispatcher>();
+        var pipeline = new ImportPipeline([stage1.Object, stage2.Object], dispatcher.Object);
 
         // Act
         await pipeline.ExecuteAsync(context);

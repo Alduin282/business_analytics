@@ -37,7 +37,8 @@ public class HashCheckStage : IImportPipelineStage
         var duplicate = await repository.Query()
             .FirstOrDefaultAsync(s => 
                 s.UserId == context.UserId && 
-                s.FileHash == context.FileHash);
+                s.FileHash == context.FileHash &&
+                !s.IsRolledBack);
 
         if (duplicate != null)
         {

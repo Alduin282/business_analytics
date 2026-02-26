@@ -22,6 +22,8 @@ public class ImportSession
     [Required]
     [MaxLength(64)]
     public string FileHash { get; set; } = string.Empty;
+
+    public bool IsRolledBack { get; set; } = false;
     
     public List<Order> Orders { get; set; } = new();
 }

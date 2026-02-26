@@ -95,10 +95,12 @@ public class OrdersController : ControllerBase
 
         return await _unitOfWork.Repository<Order, Guid>()
             .Query()
+            .Include(o => o.ImportSession)
             .Where(o => o.UserId == userId &&
                         o.OrderDate >= startUtc &&
                         o.OrderDate < endUtc &&
-                        o.Status != OrderStatus.Cancelled)
+                        o.Status != OrderStatus.Cancelled &&
+                        (o.ImportSession == null || !o.ImportSession.IsRolledBack))
             .ToListAsync();
     }
 
