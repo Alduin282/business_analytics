@@ -19,5 +19,9 @@ public class ImportSession
     
     public int ItemsCount { get; set; }
     
+    [Required]
+    [MaxLength(64)]
+    public string FileHash { get; set; } = string.Empty;
+    
     public List<Order> Orders { get; set; } = new();
 }

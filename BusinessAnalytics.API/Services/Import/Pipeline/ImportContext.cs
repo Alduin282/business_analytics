@@ -10,6 +10,7 @@ public class ImportContext
     public Stream FileStream { get; set; } = Stream.Null;
     public string FileName { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
+    public string FileHash { get; set; } = string.Empty;
     
     // After Parse stage
     public List<OrderImportRow> ParsedRows { get; set; } = new();

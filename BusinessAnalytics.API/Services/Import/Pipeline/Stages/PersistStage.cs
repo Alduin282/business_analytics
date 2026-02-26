@@ -29,7 +29,8 @@ public class PersistStage : IImportPipelineStage
                 FileName = context.FileName,
                 ImportedAt = DateTime.UtcNow,
                 OrdersCount = context.Orders.Count,
-                ItemsCount = context.Orders.Sum(o => o.Items.Count)
+                ItemsCount = context.Orders.Sum(o => o.Items.Count),
+                FileHash = context.FileHash
             };
 
             await _unitOfWork.Repository<ImportSession, Guid>().AddAsync(session);

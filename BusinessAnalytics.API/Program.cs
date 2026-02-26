@@ -73,6 +73,7 @@ builder.Services.AddScoped<DataTypeValidator>();
 builder.Services.AddScoped<BusinessRuleValidator>();
 
 // Import — Pipeline Stages (order matters!)
+builder.Services.AddScoped<IImportPipelineStage, HashCheckStage>();
 builder.Services.AddScoped<IImportPipelineStage, ParseStage>();
 builder.Services.AddScoped<IImportPipelineStage, ValidationStage>();
 builder.Services.AddScoped<IImportPipelineStage, TransformStage>();
