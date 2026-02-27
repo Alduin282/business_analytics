@@ -17,12 +17,12 @@ namespace BusinessAnalytics.Tests.Services.Import.Pipeline.Stages;
 public class ParseStageTests
 {
     private readonly Mock<FileParserFactory> _factoryMock;
-    private readonly ParseStage _stage;
+    private readonly ParseStage _parseStage;
 
     public ParseStageTests()
     {
         _factoryMock = new Mock<FileParserFactory>(new List<IFileParser>());
-        _stage = new ParseStage(_factoryMock.Object);
+        _parseStage = new ParseStage(_factoryMock.Object);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class ParseStageTests
         _factoryMock.Setup(f => f.GetParser("test.csv")).Returns(parserMock.Object);
 
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _parseStage.ExecuteAsync(context);
 
         // Assert
         result.ParsedRows.Should().HaveCount(1);
@@ -55,7 +55,7 @@ public class ParseStageTests
         _factoryMock.Setup(f => f.GetParser("unknown.ext")).Throws(new NotSupportedException("Not supported"));
 
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _parseStage.ExecuteAsync(context);
 
         // Assert
         result.IsAborted.Should().BeTrue();
@@ -73,7 +73,7 @@ public class ParseStageTests
         _factoryMock.Setup(f => f.GetParser("test.csv")).Returns(parserMock.Object);
 
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _parseStage.ExecuteAsync(context);
 
         // Assert
         result.IsAborted.Should().BeTrue();

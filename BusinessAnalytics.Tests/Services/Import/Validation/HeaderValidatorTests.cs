@@ -6,11 +6,11 @@ namespace BusinessAnalytics.Tests.Services.Import.Validation;
 
 public class HeaderValidatorTests
 {
-    private readonly HeaderValidator _validator;
+    private readonly HeaderValidator _headerValidator;
 
     public HeaderValidatorTests()
     {
-        _validator = new HeaderValidator();
+        _headerValidator = new HeaderValidator();
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class HeaderValidatorTests
         var rows = new List<OrderImportRow> { new OrderImportRow() };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, headers);
+        var result = await _headerValidator.ValidateAsync(rows, headers);
 
         // Assert
         result.Should().BeEmpty();
@@ -35,7 +35,7 @@ public class HeaderValidatorTests
         var rows = new List<OrderImportRow> { new OrderImportRow() };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, headers);
+        var result = await _headerValidator.ValidateAsync(rows, headers);
 
         // Assert
         result.Should().NotBeEmpty();
@@ -51,7 +51,7 @@ public class HeaderValidatorTests
         var rows = new List<OrderImportRow>();
 
         // Act
-        var result = await _validator.ValidateAsync(rows, headers);
+        var result = await _headerValidator.ValidateAsync(rows, headers);
 
         // Assert
         result.Should().HaveCount(1);
@@ -66,7 +66,7 @@ public class HeaderValidatorTests
         var rows = new List<OrderImportRow> { new OrderImportRow() };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, headers);
+        var result = await _headerValidator.ValidateAsync(rows, headers);
 
         // Assert
         result.Should().BeEmpty();

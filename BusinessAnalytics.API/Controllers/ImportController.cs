@@ -13,18 +13,11 @@ namespace BusinessAnalytics.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ImportController : ControllerBase
+public class ImportController(IImportPipeline pipeline, IUnitOfWork uow, IImportEventDispatcher dispatcher) : ControllerBase
 {
-    private readonly ImportPipeline _pipeline;
-    private readonly IUnitOfWork _uow;
-    private readonly IImportEventDispatcher _dispatcher;
-
-    public ImportController(ImportPipeline pipeline, IUnitOfWork uow, IImportEventDispatcher dispatcher)
-    {
-        _pipeline = pipeline;
-        _uow = uow;
-        _dispatcher = dispatcher;
-    }
+    private readonly IImportPipeline _pipeline = pipeline;
+    private readonly IUnitOfWork _uow = uow;
+    private readonly IImportEventDispatcher _dispatcher = dispatcher;
 
     [HttpPost("orders")]
     public async Task<ActionResult<ImportResult>> ImportOrders(IFormFile file)
@@ -33,7 +26,7 @@ public class ImportController : ControllerBase
             return BadRequest(new ImportResult
             {
                 Success = false,
-                Errors = new() { new Services.Import.Validation.ValidationError(0, "File", "No file uploaded") }
+                Errors = [new Services.Import.Validation.ValidationError(0, "File", "No file uploaded")]
             });
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

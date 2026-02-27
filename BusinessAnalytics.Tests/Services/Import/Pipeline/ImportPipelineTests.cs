@@ -22,10 +22,10 @@ public class ImportPipelineTests
               .ReturnsAsync((ImportContext ctx) => ctx);
 
         var dispatcher = new Mock<IImportEventDispatcher>();
-        var pipeline = new ImportPipeline([stage1.Object, stage2.Object], dispatcher.Object);
+        var importPipeline = new ImportPipeline([stage1.Object, stage2.Object], dispatcher.Object);
 
         // Act
-        var result = await pipeline.ExecuteAsync(context);
+        var result = await importPipeline.ExecuteAsync(context);
 
         // Assert
         stage1.Verify(s => s.ExecuteAsync(context), Times.Once);

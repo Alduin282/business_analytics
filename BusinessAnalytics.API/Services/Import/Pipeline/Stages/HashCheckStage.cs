@@ -6,18 +6,9 @@ using System.Security.Cryptography;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 
-/// <summary>
-/// Stage 0: Calculate file hash and check for duplicates.
-/// Prevents importing the same file multiple times by the same user.
-/// </summary>
-public class HashCheckStage : IImportPipelineStage
+public class HashCheckStage(IUnitOfWork unitOfWork) : IImportPipelineStage
 {
-    private readonly IUnitOfWork _unitOfWork;
-
-    public HashCheckStage(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {
@@ -31,7 +22,6 @@ public class HashCheckStage : IImportPipelineStage
         var hashBytes = await sha256.ComputeHashAsync(context.FileStream);
         context.FileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         
-        // Check for existing import session with the same hash and user
         var repository = _unitOfWork.Repository<ImportSession, Guid>();
         
         var duplicate = await repository.Query()

@@ -6,11 +6,11 @@ namespace BusinessAnalytics.Tests.Services.Import.Validation;
 
 public class DataTypeValidatorTests
 {
-    private readonly DataTypeValidator _validator;
+    private readonly DataTypeValidator _dateTypeValidator;
 
     public DataTypeValidatorTests()
     {
-        _validator = new DataTypeValidator();
+        _dateTypeValidator = new DataTypeValidator();
     }
 
     private OrderImportRow CreateValidRow() => new()
@@ -33,7 +33,7 @@ public class DataTypeValidatorTests
         var rows = new List<OrderImportRow> { CreateValidRow() };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, []);
+        var result = await _dateTypeValidator.ValidateAsync(rows, []);
 
         // Assert
         result.Should().BeEmpty();
@@ -54,7 +54,7 @@ public class DataTypeValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, []);
+        var result = await _dateTypeValidator.ValidateAsync(rows, []);
 
         // Assert
         result.Should().Contain(e => e.Column == "OrderDate");
@@ -69,7 +69,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.CustomerName = "";
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "CustomerName" && e.Message.Contains("required"));
     }
 
@@ -78,7 +78,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.CustomerName = new string('A', 201);
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "CustomerName" && e.Message.Contains("exceeds 200"));
     }
 
@@ -99,7 +99,7 @@ public class DataTypeValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, []);
+        var result = await _dateTypeValidator.ValidateAsync(rows, []);
 
         // Assert
         result.Should().Contain(e => e.Column == "CustomerEmail");
@@ -114,7 +114,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.ProductName = "";
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "ProductName" && e.Message.Contains("required"));
     }
 
@@ -123,7 +123,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.ProductName = new string('A', 201);
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "ProductName" && e.Message.Contains("exceeds 200"));
     }
 
@@ -136,7 +136,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.CategoryName = "";
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "CategoryName" && e.Message.Contains("required"));
     }
 
@@ -145,7 +145,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.CategoryName = new string('A', 101);
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "CategoryName" && e.Message.Contains("exceeds 100"));
     }
 
@@ -165,7 +165,7 @@ public class DataTypeValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, []);
+        var result = await _dateTypeValidator.ValidateAsync(rows, []);
 
         // Assert
         result.Should().Contain(e => e.Column == "Quantity");
@@ -188,7 +188,7 @@ public class DataTypeValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, []);
+        var result = await _dateTypeValidator.ValidateAsync(rows, []);
 
         // Assert
         result.Should().Contain(e => e.Column == "UnitPrice");
@@ -203,7 +203,7 @@ public class DataTypeValidatorTests
     {
         var row = CreateValidRow();
         row.Status = "";
-        var result = await _validator.ValidateAsync(new List<OrderImportRow> { row }, []);
+        var result = await _dateTypeValidator.ValidateAsync(new List<OrderImportRow> { row }, []);
         result.Should().Contain(e => e.Column == "Status" && e.Message.Contains("required"));
     }
 

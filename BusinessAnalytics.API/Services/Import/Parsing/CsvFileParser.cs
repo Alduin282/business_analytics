@@ -24,7 +24,7 @@ public class CsvFileParser : IFileParser
 
         using var csv = new CsvReader(reader, config);
         
-        int rowNumber = 1; // Header is row 1
+        int rowNumber = 1;
         await foreach (var record in csv.GetRecordsAsync<OrderImportRow>())
         {
             rowNumber++;

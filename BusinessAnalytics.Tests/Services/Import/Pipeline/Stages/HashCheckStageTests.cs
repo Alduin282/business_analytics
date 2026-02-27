@@ -18,7 +18,7 @@ namespace BusinessAnalytics.Tests.Services.Import.Pipeline.Stages;
 public class HashCheckStageTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly HashCheckStage _stage;
+    private readonly HashCheckStage _hashCheckStage;
     private readonly DbContextOptions<ApplicationDbContext> _dbOptions;
 
     public HashCheckStageTests()
@@ -28,7 +28,7 @@ public class HashCheckStageTests
             .Options;
 
         _uowMock = new Mock<IUnitOfWork>();
-        _stage = new HashCheckStage(_uowMock.Object);
+        _hashCheckStage = new HashCheckStage(_uowMock.Object);
     }
 
     private ApplicationDbContext CreateContext() => new ApplicationDbContext(_dbOptions);
@@ -51,7 +51,7 @@ public class HashCheckStageTests
         _uowMock.Setup(u => u.Repository<ImportSession, Guid>()).Returns(repo);
 
         // Act
-        await _stage.ExecuteAsync(context);
+        await _hashCheckStage.ExecuteAsync(context);
 
         // Assert
         context.FileHash.Should().NotBeEmpty();
@@ -93,7 +93,7 @@ public class HashCheckStageTests
         _uowMock.Setup(u => u.Repository<ImportSession, Guid>()).Returns(repo);
 
         // Act
-        await _stage.ExecuteAsync(context);
+        await _hashCheckStage.ExecuteAsync(context);
 
         // Assert
         context.IsAborted.Should().BeTrue();
@@ -133,7 +133,7 @@ public class HashCheckStageTests
         _uowMock.Setup(u => u.Repository<ImportSession, Guid>()).Returns(repo);
 
         // Act
-        await _stage.ExecuteAsync(context);
+        await _hashCheckStage.ExecuteAsync(context);
 
         // Assert
         context.IsAborted.Should().BeFalse();

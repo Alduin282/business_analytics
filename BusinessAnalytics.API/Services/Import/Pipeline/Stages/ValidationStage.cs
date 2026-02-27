@@ -6,21 +6,14 @@ namespace BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 /// Stage 2: Run the Chain of Responsibility validators.
 /// Aborts pipeline if any validation errors are found.
 /// </summary>
-public class ValidationStage : IImportPipelineStage
+public class ValidationStage(
+    HeaderValidator headerValidator,
+    DataTypeValidator dataTypeValidator,
+    BusinessRuleValidator businessRuleValidator) : IImportPipelineStage
 {
-    private readonly HeaderValidator _headerValidator;
-    private readonly DataTypeValidator _dataTypeValidator;
-    private readonly BusinessRuleValidator _businessRuleValidator;
-
-    public ValidationStage(
-        HeaderValidator headerValidator,
-        DataTypeValidator dataTypeValidator,
-        BusinessRuleValidator businessRuleValidator)
-    {
-        _headerValidator = headerValidator;
-        _dataTypeValidator = dataTypeValidator;
-        _businessRuleValidator = businessRuleValidator;
-    }
+    private readonly HeaderValidator _headerValidator = headerValidator;
+    private readonly DataTypeValidator _dataTypeValidator = dataTypeValidator;
+    private readonly BusinessRuleValidator _businessRuleValidator = businessRuleValidator;
 
     public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {

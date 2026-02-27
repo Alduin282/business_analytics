@@ -13,7 +13,7 @@ public class AnalyticsServiceTests : IDisposable
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly AnalyticsService _service;
+    private readonly AnalyticsService _analyticsService;
     private readonly OrderTestBuilder _orderBuilder;
     private const string TestUserId = "user-123";
     private const decimal DefaultTotalAmount = 100;
@@ -26,7 +26,7 @@ public class AnalyticsServiceTests : IDisposable
         
         _context = new ApplicationDbContext(options);
         _unitOfWork = new UnitOfWork(_context);
-        _service = new AnalyticsService(_unitOfWork);
+        _analyticsService = new AnalyticsService(_unitOfWork);
         _orderBuilder = new OrderTestBuilder(TestUserId)
             .WithAmount(DefaultTotalAmount);
     }
@@ -46,7 +46,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.OrderCount, 
@@ -72,7 +72,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -92,7 +92,7 @@ public class AnalyticsServiceTests : IDisposable
         var endDate = new DateTime(2023, 1, 1);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -121,7 +121,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -151,7 +151,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Month, 
             MetricType.TotalAmount, 
@@ -181,7 +181,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Week, 
             MetricType.TotalAmount, 
@@ -210,7 +210,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Month, 
             MetricType.TotalAmount, 
@@ -237,7 +237,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -267,7 +267,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -297,7 +297,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -318,7 +318,7 @@ public class AnalyticsServiceTests : IDisposable
         var endDate = new DateTime(2023, 1, 1);
 
         // Act
-        var action = () => _service.GetAnalyticsAsync(
+        var action = () => _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Day, 
             MetricType.TotalAmount, 
@@ -338,7 +338,7 @@ public class AnalyticsServiceTests : IDisposable
         var endDate = new DateTime(2026, 1, 2); // > 5 years
 
         // Act
-        var action = () => _service.GetAnalyticsAsync(
+        var action = () => _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Month, 
             MetricType.TotalAmount, 
@@ -363,7 +363,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Month, 
             MetricType.TotalAmount, 
@@ -409,7 +409,7 @@ public class AnalyticsServiceTests : IDisposable
         await SaveOrders(orders);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Month, 
             MetricType.TotalAmount, 
@@ -429,7 +429,7 @@ public class AnalyticsServiceTests : IDisposable
         var endDate = new DateTime(2023, 1, 31);
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Month, 
             MetricType.TotalAmount, 
@@ -449,7 +449,7 @@ public class AnalyticsServiceTests : IDisposable
         var endDate = new DateTime(2026, 2, 8); // Sunday
 
         // Act
-        var result = await _service.GetAnalyticsAsync(
+        var result = await _analyticsService.GetAnalyticsAsync(
             TestUserId, 
             GroupPeriod.Week, 
             MetricType.TotalAmount, 

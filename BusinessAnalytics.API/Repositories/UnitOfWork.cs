@@ -4,20 +4,13 @@ using BusinessAnalytics.API.Data;
 namespace BusinessAnalytics.API.Repositories;
 
 /// <summary>
-/// Unit of Work (UoW) паттерн. 
-/// Его главная задача — обеспечить изоляцию бизнес-логики от конкретной реализации БД (EF Core).
 /// Если мы решим сменить EF Core на Dapper или другую библиотеку, 
 /// мы просто заменим реализацию этого класса, не меняя контроллеры и сервисы.
 /// </summary>
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context = context;
     private readonly Dictionary<Type, object> _repositories = new();
-
-    public UnitOfWork(ApplicationDbContext context)
-    {
-        _context = context;
-    }
 
     public async Task<int> CompleteAsync()
         => await _context.SaveChangesAsync();

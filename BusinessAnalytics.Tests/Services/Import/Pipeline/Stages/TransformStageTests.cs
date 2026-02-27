@@ -16,13 +16,13 @@ namespace BusinessAnalytics.Tests.Services.Import.Pipeline.Stages;
 public class TransformStageTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly TransformStage _stage;
+    private readonly TransformStage _transformStage;
     private readonly string _userId = Guid.NewGuid().ToString();
 
     public TransformStageTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _stage = new TransformStage(_uowMock.Object);
+        _transformStage = new TransformStage(_uowMock.Object);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class TransformStageTests
         _uowMock.Setup(u => u.Repository<Product, Guid>()).Returns(productRepo.Object);
 
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _transformStage.ExecuteAsync(context);
 
         // Assert
         result.Orders.Should().HaveCount(1);
@@ -92,7 +92,7 @@ public class TransformStageTests
         SetupEmptyMocks();
 
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _transformStage.ExecuteAsync(context);
 
         // Assert
         result.Orders.Should().HaveCount(1);

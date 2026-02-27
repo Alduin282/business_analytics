@@ -5,14 +5,9 @@ namespace BusinessAnalytics.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SeedController : ControllerBase
+public class SeedController(DbSeeder seeder) : ControllerBase
 {
-    private readonly DbSeeder _seeder;
-
-    public SeedController(DbSeeder seeder)
-    {
-        _seeder = seeder;
-    }
+    private readonly DbSeeder _seeder = seeder;
 
     [HttpPost]
     public async Task<IActionResult> Seed([FromQuery] string userId)

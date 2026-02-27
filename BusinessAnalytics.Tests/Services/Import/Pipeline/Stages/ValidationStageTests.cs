@@ -14,7 +14,7 @@ namespace BusinessAnalytics.Tests.Services.Import.Pipeline.Stages;
 
 public class ValidationStageTests
 {
-    private readonly ValidationStage _stage;
+    private readonly ValidationStage _validationStage;
     private readonly HeaderValidator _headerValidator;
     private readonly DataTypeValidator _dataTypeValidator;
     private readonly BusinessRuleValidator _businessRuleValidator;
@@ -24,7 +24,7 @@ public class ValidationStageTests
         _headerValidator = new HeaderValidator();
         _dataTypeValidator = new DataTypeValidator();
         _businessRuleValidator = new BusinessRuleValidator();
-        _stage = new ValidationStage(_headerValidator, _dataTypeValidator, _businessRuleValidator);
+        _validationStage = new ValidationStage(_headerValidator, _dataTypeValidator, _businessRuleValidator);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ValidationStageTests
         };
         
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _validationStage.ExecuteAsync(context);
 
         // Assert
         result.Errors.Should().BeEmpty();
@@ -58,7 +58,7 @@ public class ValidationStageTests
         };
         
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _validationStage.ExecuteAsync(context);
 
         // Assert
         result.Errors.Should().NotBeEmpty();

@@ -5,7 +5,6 @@ using BusinessAnalytics.API.Models;
 using BusinessAnalytics.API.Models.DTOs;
 using BusinessAnalytics.API.Repositories;
 using BusinessAnalytics.API.Services.Import.Pipeline;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

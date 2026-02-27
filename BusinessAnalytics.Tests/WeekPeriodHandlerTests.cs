@@ -8,27 +8,27 @@ namespace BusinessAnalytics.Tests;
 
 public class WeekPeriodHandlerTests
 {
-    private readonly WeekPeriodHandler _handler = new();
+    private readonly WeekPeriodHandler _weekPeriodHandler = new();
 
     [Fact]
     public void GetLabel_ReturnsCorrectFormat()
     {
         var date = new DateTime(2026, 2, 4); // Wednesday
-        _handler.GetLabel(date).Should().Be("02.02 - 08.02");
+        _weekPeriodHandler.GetLabel(date).Should().Be("02.02 - 08.02");
     }
 
     [Fact]
     public void AlignToStart_AlignsToMonday()
     {
         var date = new DateTime(2026, 2, 4); // Wednesday
-        _handler.AlignToStart(date).Should().Be(new DateTime(2026, 2, 2));
+        _weekPeriodHandler.AlignToStart(date).Should().Be(new DateTime(2026, 2, 2));
     }
 
     [Fact]
     public void GetNext_ReturnsOneWeekLater()
     {
         var date = new DateTime(2026, 2, 2);
-        _handler.GetNext(date).Should().Be(new DateTime(2026, 2, 9));
+        _weekPeriodHandler.GetNext(date).Should().Be(new DateTime(2026, 2, 9));
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class WeekPeriodHandlerTests
         var range = new DateRange(new DateTime(2026, 2, 3), new DateTime(2026, 2, 8));
         var weekDate = new DateTime(2026, 2, 2); // Monday
         
-        _handler.IsPartial(weekDate, range).Should().BeTrue();
+        _weekPeriodHandler.IsPartial(weekDate, range).Should().BeTrue();
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class WeekPeriodHandlerTests
         var range = new DateRange(new DateTime(2026, 2, 2), new DateTime(2026, 2, 7));
         var weekDate = new DateTime(2026, 2, 2); // Monday
         
-        _handler.IsPartial(weekDate, range).Should().BeTrue();
+        _weekPeriodHandler.IsPartial(weekDate, range).Should().BeTrue();
     }
 
     [Fact]
@@ -55,6 +55,6 @@ public class WeekPeriodHandlerTests
         var range = new DateRange(new DateTime(2026, 2, 2), new DateTime(2026, 2, 9));
         var weekDate = new DateTime(2026, 2, 2); // Monday
         
-        _handler.IsPartial(weekDate, range).Should().BeFalse();
+        _weekPeriodHandler.IsPartial(weekDate, range).Should().BeFalse();
     }
 }

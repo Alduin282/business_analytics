@@ -3,16 +3,10 @@ using BusinessAnalytics.API.Models;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline;
 
-public class ImportPipeline
+public class ImportPipeline(IEnumerable<IImportPipelineStage> stages, IImportEventDispatcher dispatcher) : IImportPipeline
 {
-    private readonly IEnumerable<IImportPipelineStage> _stages;
-    private readonly IImportEventDispatcher _dispatcher;
-
-    public ImportPipeline(IEnumerable<IImportPipelineStage> stages, IImportEventDispatcher dispatcher)
-    {
-        _stages = stages;
-        _dispatcher = dispatcher;
-    }
+    private readonly IEnumerable<IImportPipelineStage> _stages = stages;
+    private readonly IImportEventDispatcher _dispatcher = dispatcher;
 
     public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {
@@ -29,11 +23,11 @@ public class ImportPipeline
             await _dispatcher.NotifyAsync(new ImportActivityEvent(
                 context.UserId,
                 ImportAction.Imported,
-                context.Session?.Id ?? Guid.Empty,
+                context.Session?.Id ?? Guid.NewGuid(),
                 context.FileName,
                 DateTime.UtcNow,
-                context.Orders.Count
-            ));
+                context.Session?.OrdersCount ?? 0,
+                "Import completed successfully"));
         }
 
         return context;

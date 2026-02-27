@@ -1,5 +1,4 @@
 using BusinessAnalytics.API.Models;
-using FluentAssertions;
 
 namespace BusinessAnalytics.Tests;
 
@@ -19,10 +18,10 @@ public class DateRangeTests
     {
         var start = new DateTime(2023, 1, 1, 10, 0, 0);
         var end = new DateTime(2023, 1, 2, 10, 0, 0);
-        var range = new DateRange(start, end);
+        var dateRange = new DateRange(start, end);
 
-        range.Start.Should().Be(new DateTime(2023, 1, 1));
-        range.End.Should().Be(new DateTime(2023, 1, 2));
+        dateRange.Start.Should().Be(new DateTime(2023, 1, 1));
+        dateRange.End.Should().Be(new DateTime(2023, 1, 2));
     }
 
     [Fact]

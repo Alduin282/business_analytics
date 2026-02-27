@@ -2,17 +2,9 @@ using BusinessAnalytics.API.Services.Import.Parsing;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 
-/// <summary>
-/// Stage 1: Parse the uploaded file into OrderImportRow DTOs using the appropriate parser.
-/// </summary>
-public class ParseStage : IImportPipelineStage
+public class ParseStage(FileParserFactory parserFactory) : IImportPipelineStage
 {
-    private readonly FileParserFactory _parserFactory;
-
-    public ParseStage(FileParserFactory parserFactory)
-    {
-        _parserFactory = parserFactory;
-    }
+    private readonly FileParserFactory _parserFactory = parserFactory;
 
     public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {
@@ -20,7 +12,6 @@ public class ParseStage : IImportPipelineStage
         {
             var parser = _parserFactory.GetParser(context.FileName);
             
-            // Read the header line separately before parsing to pass to validators
             context.FileStream.Position = 0;
             using var headerReader = new StreamReader(context.FileStream, leaveOpen: true);
             var headerLine = await headerReader.ReadLineAsync();
@@ -30,7 +21,6 @@ public class ParseStage : IImportPipelineStage
                 context.Headers = headerLine.Split(',').Select(h => h.Trim().Trim('"')).ToArray();
             }
             
-            // Reset stream and parse
             context.FileStream.Position = 0;
             context.ParsedRows = await parser.ParseAsync(context.FileStream);
         }

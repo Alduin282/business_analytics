@@ -11,16 +11,10 @@ namespace BusinessAnalytics.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration) : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IConfiguration _configuration;
-
-    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
-    {
-        _userManager = userManager;
-        _configuration = configuration;
-    }
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IConfiguration _configuration = configuration;
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto model)
@@ -59,10 +53,10 @@ public class AuthController : ControllerBase
         {
             var authClaims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim("TimeZoneId", user.TimeZoneId),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(ClaimTypes.Name, user.UserName!),
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new("TimeZoneId", user.TimeZoneId),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));

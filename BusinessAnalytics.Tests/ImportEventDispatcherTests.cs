@@ -8,21 +8,21 @@ using Xunit;
 
 namespace BusinessAnalytics.Tests;
 
-public class ImportObserverTests
+public class ImportEventDispatcherTests
 {
     private readonly Mock<IImportObserver> _observerMock1;
     private readonly Mock<IImportObserver> _observerMock2;
     private readonly Mock<ILogger<ImportEventDispatcher>> _loggerMock;
-    private readonly ImportEventDispatcher _dispatcher;
+    private readonly ImportEventDispatcher _importEventDispatcher;
 
-    public ImportObserverTests()
+    public ImportEventDispatcherTests()
     {
         _observerMock1 = new Mock<IImportObserver>();
         _observerMock2 = new Mock<IImportObserver>();
         _loggerMock = new Mock<ILogger<ImportEventDispatcher>>();
         
         var observers = new List<IImportObserver> { _observerMock1.Object, _observerMock2.Object };
-        _dispatcher = new ImportEventDispatcher(observers, _loggerMock.Object);
+        _importEventDispatcher = new ImportEventDispatcher(observers, _loggerMock.Object);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class ImportObserverTests
         );
 
         // Act
-        await _dispatcher.NotifyAsync(@event);
+        await _importEventDispatcher.NotifyAsync(@event);
 
         // Assert
         _observerMock1.Verify(x => x.HandleAsync(@event), Times.Once);
@@ -56,7 +56,7 @@ public class ImportObserverTests
 
         // Act
         // Should not throw
-        await _dispatcher.NotifyAsync(@event);
+        await _importEventDispatcher.NotifyAsync(@event);
 
         // Assert
         _observerMock1.Verify(x => x.HandleAsync(@event), Times.Once);

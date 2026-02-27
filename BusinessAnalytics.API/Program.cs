@@ -81,8 +81,8 @@ builder.Services.AddScoped<IImportPipelineStage, ParseStage>();
 builder.Services.AddScoped<IImportPipelineStage, ValidationStage>();
 builder.Services.AddScoped<IImportPipelineStage, TransformStage>();
 builder.Services.AddScoped<IImportPipelineStage, PersistStage>();
-builder.Services.AddScoped<ImportPipeline>();
-builder.Services.Decorate<ImportPipeline, PerformanceImportPipeline>();
+builder.Services.AddScoped<IImportPipeline, ImportPipeline>();
+builder.Services.Decorate<IImportPipeline, PerformanceImportPipelineDecorator>();
 
 // Observer Pattern - Events & Observers
 builder.Services.AddScoped<IImportObserver, AuditObserver>();

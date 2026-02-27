@@ -1,22 +1,13 @@
 using System.Diagnostics;
-using BusinessAnalytics.API.Services.Events;
-using BusinessAnalytics.API.Services.Import.Pipeline;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline;
 
-public class PerformanceImportPipeline : ImportPipeline
+public class PerformanceImportPipelineDecorator(IImportPipeline inner, ILogger<PerformanceImportPipelineDecorator> logger) : IImportPipeline
 {
-    private readonly ImportPipeline _inner;
-    private readonly ILogger<PerformanceImportPipeline> _logger;
+    private readonly IImportPipeline _inner = inner;
+    private readonly ILogger<PerformanceImportPipelineDecorator> _logger = logger;
 
-    public PerformanceImportPipeline(IEnumerable<IImportPipelineStage> stages, IImportEventDispatcher dispatcher, ILogger<PerformanceImportPipeline> logger) 
-        : base(stages, dispatcher)
-    {
-        _inner = new ImportPipeline(stages, dispatcher);
-        _logger = logger;
-    }
-
-    public new async Task<ImportContext> ExecuteAsync(ImportContext context)
+    public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {
         var stopwatch = Stopwatch.StartNew();
         var sessionId = context.Session?.Id ?? Guid.NewGuid();

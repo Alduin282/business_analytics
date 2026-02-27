@@ -1,15 +1,10 @@
 namespace BusinessAnalytics.API.Services.Import.Parsing;
 
-public class FileParserFactory
+public class FileParserFactory(IEnumerable<IFileParser> parsers)
 {
-    private readonly Dictionary<string, IFileParser> _parsers;
-
-    public FileParserFactory(IEnumerable<IFileParser> parsers)
-    {
-        _parsers = parsers.ToDictionary(
+    private readonly Dictionary<string, IFileParser> _parsers = parsers.ToDictionary(
             p => p.SupportedExtension.ToLowerInvariant(),
             p => p);
-    }
 
     public virtual IFileParser GetParser(string fileName)
     {

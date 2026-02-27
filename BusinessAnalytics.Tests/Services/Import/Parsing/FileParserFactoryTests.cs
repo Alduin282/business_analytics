@@ -8,7 +8,7 @@ public class FileParserFactoryTests
 {
     private readonly Mock<IFileParser> _csvParserMock;
     private readonly Mock<IFileParser> _jsonParserMock;
-    private readonly FileParserFactory _factory;
+    private readonly FileParserFactory _fileParserFactory;
 
     public FileParserFactoryTests()
     {
@@ -19,14 +19,14 @@ public class FileParserFactoryTests
         _jsonParserMock.Setup(p => p.SupportedExtension).Returns(".json");
 
         var parsers = new List<IFileParser> { _csvParserMock.Object, _jsonParserMock.Object };
-        _factory = new FileParserFactory(parsers);
+        _fileParserFactory = new FileParserFactory(parsers);
     }
 
     [Fact]
     public void GetParser_WithSupportedExtension_ReturnsCorrectParser()
     {
         // Act
-        var result = _factory.GetParser("data.csv");
+        var result = _fileParserFactory.GetParser("data.csv");
 
         // Assert
         result.Should().Be(_csvParserMock.Object);
@@ -37,7 +37,7 @@ public class FileParserFactoryTests
     public void GetParser_WithDifferentCaseExtension_ReturnsCorrectParser()
     {
         // Act
-        var result = _factory.GetParser("DATA.JSON");
+        var result = _fileParserFactory.GetParser("DATA.JSON");
 
         // Assert
         result.Should().Be(_jsonParserMock.Object);
@@ -48,7 +48,7 @@ public class FileParserFactoryTests
     public void GetParser_WithUnsupportedExtension_ThrowsNotSupportedException()
     {
         // Act
-        Action act = () => _factory.GetParser("data.xml");
+        Action act = () => _fileParserFactory.GetParser("data.xml");
 
         // Assert
         act.Should().Throw<NotSupportedException>()
@@ -59,7 +59,7 @@ public class FileParserFactoryTests
     public void GetParser_WithNoExtension_ThrowsNotSupportedException()
     {
         // Act
-        Action act = () => _factory.GetParser("datafile");
+        Action act = () => _fileParserFactory.GetParser("datafile");
 
         // Assert
         act.Should().Throw<NotSupportedException>();

@@ -4,20 +4,11 @@ using BusinessAnalytics.API.Repositories;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 
-/// <summary>
-/// Stage 3: Transform parsed rows into domain models.
-/// Groups rows into Orders, resolves or creates Customers/Products/Categories.
-/// </summary>
-public class TransformStage : IImportPipelineStage
+public class TransformStage(IUnitOfWork unitOfWork) : IImportPipelineStage
 {
     private static readonly string[] DateFormats = { "yyyy-MM-dd HH:mm", "yyyy-MM-dd H:mm", "yyyy-MM-dd" };
 
-    private readonly IUnitOfWork _unitOfWork;
-
-    public TransformStage(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {
@@ -25,7 +16,6 @@ public class TransformStage : IImportPipelineStage
         var categoryRepo = _unitOfWork.Repository<Category, int>();
         var productRepo = _unitOfWork.Repository<Product, Guid>();
 
-        // Load existing entities for this user
         var existingCustomers = (await customerRepo.GetAllAsync())
             .Where(c => c.UserId == context.UserId)
             .ToDictionary(c => c.Email?.ToLowerInvariant() ?? "", c => c);
@@ -38,7 +28,6 @@ public class TransformStage : IImportPipelineStage
             .Where(p => p.UserId == context.UserId)
             .ToDictionary(p => p.Name.ToLowerInvariant(), p => p);
 
-        // Group rows by OrderDate + CustomerEmail → one Order per group
         var orderGroups = context.ParsedRows
             .GroupBy(r => new { r.OrderDate, Email = r.CustomerEmail.ToLowerInvariant() });
 
@@ -47,7 +36,6 @@ public class TransformStage : IImportPipelineStage
             var firstRow = group.First();
             var orderDate = DateTime.ParseExact(firstRow.OrderDate, DateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None);
 
-            // Resolve or create Customer
             var customer = ResolveCustomer(existingCustomers, firstRow, context.UserId, context.CustomersCreated);
 
             var order = new Order
@@ -65,10 +53,8 @@ public class TransformStage : IImportPipelineStage
 
             foreach (var row in group)
             {
-                // Resolve or create Category
                 var category = ResolveCategory(existingCategories, row, context.UserId, context.CategoriesCreated);
 
-                // Resolve or create Product
                 var product = ResolveProduct(existingProducts, row, context.UserId, category, context.ProductsCreated);
 
                 var quantity = int.Parse(row.Quantity);

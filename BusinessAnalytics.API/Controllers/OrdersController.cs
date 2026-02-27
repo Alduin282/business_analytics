@@ -10,14 +10,9 @@ namespace BusinessAnalytics.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class OrdersController : ControllerBase
+public class OrdersController(IAnalyticsService analyticsService) : ControllerBase
 {
-    private readonly IAnalyticsService _analyticsService;
-
-    public OrdersController(IAnalyticsService analyticsService)
-    {
-        _analyticsService = analyticsService;
-    }
+    private readonly IAnalyticsService _analyticsService = analyticsService;
 
     [HttpGet("analytics")]
     [ProducesResponseType(typeof(List<AnalyticsPoint>), StatusCodes.Status200OK)]

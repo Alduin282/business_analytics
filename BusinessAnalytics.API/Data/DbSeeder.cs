@@ -31,16 +31,12 @@ public class DbSeeder
 
     public async Task SeedAsync(string userId)
     {
-        // 1. Cleanup existing data for this user
         await CleanupAsync(userId);
 
-        // 2. Create Categories & Products
         var categories = await CreateCategoriesAndProductsAsync(userId);
 
-        // 3. Create Customers
         var customers = await CreateCustomersAsync(userId, TotalCustomersToGenerate);
-
-        // 4. Generate Orders for the past period
+        
         await GenerateOrdersAsync(userId, categories, customers);
 
         await _context.SaveChangesAsync();
@@ -73,19 +69,19 @@ public class DbSeeder
         var products = new List<Product>
         {
             // Equipment (3000-5000)
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Treadmill X100", Price = 5000, Category = equipment },
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Professional Dumbbells Set", Price = 3500, Category = equipment },
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Exercise Bike Pro", Price = 4500, Category = equipment },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Treadmill X100", Price = 5000, Category = equipment },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Professional Dumbbells Set", Price = 3500, Category = equipment },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Exercise Bike Pro", Price = 4500, Category = equipment },
             
             // Apparel (1500-3000)
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Premium Yoga Pants", Price = 2200, Category = apparel },
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Pro Running Jersey", Price = 1800, Category = apparel },
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "All-Weather Windbreaker", Price = 2900, Category = apparel },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Premium Yoga Pants", Price = 2200, Category = apparel },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Pro Running Jersey", Price = 1800, Category = apparel },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "All-Weather Windbreaker", Price = 2900, Category = apparel },
 
             // Accessories (500-1500)
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Smart Water Bottle", Price = 800, Category = accessories },
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "High-Density Gym Mat", Price = 1200, Category = accessories },
-            new Product { Id = Guid.NewGuid(), UserId = userId, Name = "Professional Skipping Rope", Price = 600, Category = accessories }
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Smart Water Bottle", Price = 800, Category = accessories },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "High-Density Gym Mat", Price = 1200, Category = accessories },
+            new() { Id = Guid.NewGuid(), UserId = userId, Name = "Professional Skipping Rope", Price = 600, Category = accessories }
         };
 
         _context.Products.AddRange(products);
@@ -97,8 +93,8 @@ public class DbSeeder
     private async Task<List<Customer>> CreateCustomersAsync(string userId, int count)
     {
         var customers = new List<Customer>();
-        string[] firstNames = { "James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "William", "Elizabeth" };
-        string[] lastNames = { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez" };
+        string[] firstNames = ["James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "William", "Elizabeth"];
+        string[] lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"];
 
         for (int i = 0; i < count; i++)
         {
@@ -129,11 +125,9 @@ public class DbSeeder
         {
             DateTime currentDate = startDate.AddDays(day);
             
-            // 1. Base random count
             int baseCount = _random.Next(MinOrdersPerDay, MaxOrdersPerDay + 1);
 
-            // 2. Applied Trends
-            double growthFactor = 1.0 + ((double)day / DaysToHistory) * GrowthTrendMultiplier;
+            double growthFactor = 1.0 + (double)day / DaysToHistory * GrowthTrendMultiplier;
             double seasonalFactor = 1.0 + Math.Sin(day / 30.0) * SeasonalWaveIntensity;
             double weekendFactor = (currentDate.DayOfWeek == DayOfWeek.Saturday || currentDate.DayOfWeek == DayOfWeek.Sunday) ? 1.5 : 1.0;
 
@@ -152,7 +146,6 @@ public class DbSeeder
                     UpdatedAt = currentDate
                 };
 
-                // Pick random number of items
                 int itemsInOrderCount = _random.Next(MinItemsPerOrder, MaxItemsPerOrder + 1);
                 decimal orderTotal = 0;
                 

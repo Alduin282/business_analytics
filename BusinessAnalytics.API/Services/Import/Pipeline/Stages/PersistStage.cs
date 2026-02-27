@@ -3,25 +3,14 @@ using BusinessAnalytics.API.Repositories;
 
 namespace BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 
-/// <summary>
-/// Stage 4: Persist all entities to the database in a single transaction.
-/// Creates an ImportSession and links all orders to it.
-/// Rolls back everything if any error occurs (atomic import).
-/// </summary>
-public class PersistStage : IImportPipelineStage
+public class PersistStage(IUnitOfWork unitOfWork) : IImportPipelineStage
 {
-    private readonly IUnitOfWork _unitOfWork;
-
-    public PersistStage(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<ImportContext> ExecuteAsync(ImportContext context)
     {
         try
         {
-            // Create ImportSession
             var session = new ImportSession
             {
                 Id = Guid.NewGuid(),
@@ -35,7 +24,6 @@ public class PersistStage : IImportPipelineStage
 
             await _unitOfWork.Repository<ImportSession, Guid>().AddAsync(session);
 
-            // Persist all entities using generic helper
             await PersistEntitiesAsync<Category, int>(context.CategoriesCreated);
             await PersistEntitiesAsync<Customer, Guid>(context.CustomersCreated);
             await PersistEntitiesAsync<Product, Guid>(context.ProductsCreated);

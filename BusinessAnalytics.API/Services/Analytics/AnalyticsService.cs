@@ -7,16 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BusinessAnalytics.API.Services.Analytics;
 
-public class AnalyticsService : IAnalyticsService
+public class AnalyticsService(IUnitOfWork unitOfWork) : IAnalyticsService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private const int MaxYearsLimit = 5;
     private const string DefaultTimeZone = "UTC";
-
-    public AnalyticsService(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
 
     public async Task<List<AnalyticsPoint>> GetAnalyticsAsync(
         string userId,
@@ -26,17 +21,13 @@ public class AnalyticsService : IAnalyticsService
         DateTime? endDate = null,
         string? timeZoneId = null)
     {
-        // Resolve timezone
         var tz = TryResolveTimeZone(timeZoneId ?? DefaultTimeZone);
 
-        // Create date range
         var range = DateRange.Create(startDate, endDate, tz, MaxYearsLimit);
 
-        // Get handlers
         var periodHandler = GetPeriodHandler(groupBy);
         var analyticsStrategy = GetAnalyticsStrategy(metric);
 
-        // Fetch data and build analytics
         var rawOrders = await FetchOrdersFromDb(userId, range, tz);
         var result = BuildAnalytics(rawOrders, range, periodHandler, analyticsStrategy, tz);
 

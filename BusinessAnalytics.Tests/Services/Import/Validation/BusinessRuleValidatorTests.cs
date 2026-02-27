@@ -6,11 +6,11 @@ namespace BusinessAnalytics.Tests.Services.Import.Validation;
 
 public class BusinessRuleValidatorTests
 {
-    private readonly BusinessRuleValidator _validator;
+    private readonly BusinessRuleValidator _businessRuleValidator;
 
     public BusinessRuleValidatorTests()
     {
-        _validator = new BusinessRuleValidator();
+        _businessRuleValidator = new BusinessRuleValidator();
     }
 
     private OrderImportRow CreateValidRow() => new()
@@ -28,7 +28,7 @@ public class BusinessRuleValidatorTests
         var rows = new List<OrderImportRow> { CreateValidRow() };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, new string[0]);
+        var result = await _businessRuleValidator.ValidateAsync(rows, new string[0]);
 
         // Assert
         result.Should().BeEmpty();
@@ -45,7 +45,7 @@ public class BusinessRuleValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, new string[0]);
+        var result = await _businessRuleValidator.ValidateAsync(rows, new string[0]);
 
         // Assert
         result.Should().Contain(e => e.Column == "Quantity" && e.Message.Contains("greater than 0"));
@@ -60,7 +60,7 @@ public class BusinessRuleValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, new string[0]);
+        var result = await _businessRuleValidator.ValidateAsync(rows, new string[0]);
 
         // Assert
         result.Should().Contain(e => e.Column == "UnitPrice" && e.Message.Contains("cannot be negative"));
@@ -77,7 +77,7 @@ public class BusinessRuleValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, new string[0]);
+        var result = await _businessRuleValidator.ValidateAsync(rows, new string[0]);
 
         // Assert
         result.Should().Contain(e => e.Column == "Status" && e.Message.Contains("Invalid status"));
@@ -95,7 +95,7 @@ public class BusinessRuleValidatorTests
         var rows = new List<OrderImportRow> { row };
 
         // Act
-        var result = await _validator.ValidateAsync(rows, new string[0]);
+        var result = await _businessRuleValidator.ValidateAsync(rows, new string[0]);
 
         // Assert
         result.Should().BeEmpty();

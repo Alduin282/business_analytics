@@ -7,15 +7,14 @@ using FluentAssertions;
 
 namespace BusinessAnalytics.Tests;
 
-public class PerformanceImportPipelineTests
+public class PerformanceImportPipelineDecoratorTests
 {
     [Fact]
     public async Task ExecuteAsync_SuccessfulImport_LogsAccuratePerformanceData()
     {
         // Arrange
-        var stages = new List<IImportPipelineStage>();
-        var dispatcherMock = new Mock<IImportEventDispatcher>();
-        var loggerMock = new Mock<ILogger<PerformanceImportPipeline>>();
+        var innerPipelineMock = new Mock<IImportPipeline>();
+        var loggerMock = new Mock<ILogger<PerformanceImportPipelineDecorator>>();
         
         var context = new ImportContext
         {
@@ -23,7 +22,9 @@ public class PerformanceImportPipelineTests
             UserId = "user-123"
         };
         
-        var decorator = new PerformanceImportPipeline(stages, dispatcherMock.Object, loggerMock.Object);
+        innerPipelineMock.Setup(x => x.ExecuteAsync(context)).ReturnsAsync(context);
+        
+        var decorator = new PerformanceImportPipelineDecorator(innerPipelineMock.Object, loggerMock.Object);
 
         // Act
         var result = await decorator.ExecuteAsync(context);
@@ -55,9 +56,8 @@ public class PerformanceImportPipelineTests
     public async Task ExecuteAsync_FailedImport_LogsErrorWithPerformanceMetrics()
     {
         // Arrange
-        var stages = new List<IImportPipelineStage>();
-        var dispatcherMock = new Mock<IImportEventDispatcher>();
-        var loggerMock = new Mock<ILogger<PerformanceImportPipeline>>();
+        var innerPipelineMock = new Mock<IImportPipeline>();
+        var loggerMock = new Mock<ILogger<PerformanceImportPipelineDecorator>>();
         
         var context = new ImportContext
         {
@@ -65,12 +65,10 @@ public class PerformanceImportPipelineTests
             UserId = "user-123"
         };
         
-        // Simulate failure by mocking stages to throw exception
-        var stageMock = new Mock<IImportPipelineStage>();
-        stageMock.Setup(x => x.ExecuteAsync(context)).ThrowsAsync(new InvalidOperationException("Import failed"));
-        stages.Add(stageMock.Object);
+        // Simulate failure by mocking the inner pipeline to throw exception
+        innerPipelineMock.Setup(x => x.ExecuteAsync(context)).ThrowsAsync(new InvalidOperationException("Import failed"));
         
-        var decorator = new PerformanceImportPipeline(stages, dispatcherMock.Object, loggerMock.Object);
+        var decorator = new PerformanceImportPipelineDecorator(innerPipelineMock.Object, loggerMock.Object);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => decorator.ExecuteAsync(context));

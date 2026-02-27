@@ -3,7 +3,6 @@ using BusinessAnalytics.API.Controllers;
 using BusinessAnalytics.API.Models;
 using BusinessAnalytics.API.Models.DTOs;
 using BusinessAnalytics.API.Services.Analytics;
-using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -13,18 +12,18 @@ namespace BusinessAnalytics.Tests;
 public class OrdersControllerTests : IDisposable
 {
     private readonly Mock<IAnalyticsService> _analyticsServiceMock;
-    private readonly OrdersController _controller;
+    private readonly OrdersController _orderController;
     private const string TestUserId = "user-123";
 
     public OrdersControllerTests()
     {
         _analyticsServiceMock = new Mock<IAnalyticsService>();
-        _controller = new OrdersController(_analyticsServiceMock.Object);
+        _orderController = new OrdersController(_analyticsServiceMock.Object);
         
         SetupUser(TestUserId, "UTC");
     }
 
-    private void SetupUser(string userId, string timeZoneId)
+    private void SetupUser(string? userId, string timeZoneId)
     {
         var claims = new List<Claim>();
         
@@ -37,7 +36,7 @@ public class OrdersControllerTests : IDisposable
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var principal = new ClaimsPrincipal(identity);
 
-        _controller.ControllerContext = new ControllerContext
+        _orderController.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext { User = principal }
         };
@@ -64,7 +63,7 @@ public class OrdersControllerTests : IDisposable
             .ReturnsAsync(expectedAnalytics);
 
         // Act
-        var result = await _controller.GetAnalytics(
+        var result = await _orderController.GetAnalytics(
             groupBy: GroupPeriod.Month, 
             metric: MetricType.TotalAmount,
             startDate: new DateTime(2023, 1, 1),
@@ -95,7 +94,7 @@ public class OrdersControllerTests : IDisposable
         SetupUser(null, "UTC"); // No user ID
 
         // Act
-        var result = await _controller.GetAnalytics();
+        var result = await _orderController.GetAnalytics();
 
         // Assert
         result.Should().BeOfType<UnauthorizedResult>();
@@ -121,7 +120,7 @@ public class OrdersControllerTests : IDisposable
             .ThrowsAsync(new ArgumentException("Invalid date range"));
 
         // Act
-        var result = await _controller.GetAnalytics();
+        var result = await _orderController.GetAnalytics();
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;

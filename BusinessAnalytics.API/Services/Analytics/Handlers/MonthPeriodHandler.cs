@@ -13,7 +13,7 @@ public class MonthPeriodHandler : IPeriodHandler
         return range.Start > periodStart || range.End < periodEnd;
     }
 
-    public DateTime AlignToStart(DateTime date) => new DateTime(date.Year, date.Month, 1);
+    public DateTime AlignToStart(DateTime date) => new(date.Year, date.Month, 1);
 
     public DateTime GetNext(DateTime date) => date.AddMonths(1);
 }

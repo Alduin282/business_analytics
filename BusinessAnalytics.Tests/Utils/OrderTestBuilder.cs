@@ -1,8 +1,6 @@
-namespace BusinessAnalytics.Tests.Utils;
-
-using System.Data.Common;
 using BusinessAnalytics.API.Models;
 
+namespace BusinessAnalytics.Tests.Utils;
 public class OrderTestBuilder
 {
     string _userId = "test-user-id";

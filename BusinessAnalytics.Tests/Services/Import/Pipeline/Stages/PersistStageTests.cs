@@ -15,12 +15,12 @@ namespace BusinessAnalytics.Tests.Services.Import.Pipeline.Stages;
 public class PersistStageTests
 {
     private readonly Mock<IUnitOfWork> _uowMock;
-    private readonly PersistStage _stage;
+    private readonly PersistStage _persistStage;
 
     public PersistStageTests()
     {
         _uowMock = new Mock<IUnitOfWork>();
-        _stage = new PersistStage(_uowMock.Object);
+        _persistStage = new PersistStage(_uowMock.Object);
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class PersistStageTests
         _uowMock.Setup(u => u.Repository<ImportSession, Guid>()).Returns(sessionRepo.Object);
 
         // Act
-        await _stage.ExecuteAsync(context);
+        await _persistStage.ExecuteAsync(context);
 
         // Assert
         categoryRepo.Verify(r => r.AddAsync(It.IsAny<Category>()), Times.Once);
@@ -72,7 +72,7 @@ public class PersistStageTests
         _uowMock.Setup(u => u.Repository<Category, int>()).Throws(new Exception("DB Down"));
 
         // Act
-        var result = await _stage.ExecuteAsync(context);
+        var result = await _persistStage.ExecuteAsync(context);
 
         // Assert
         result.IsAborted.Should().BeTrue();
