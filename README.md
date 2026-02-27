@@ -9,7 +9,8 @@
 ## Скриншоты
 
 ### 1. Авторизация (JWT + Identity)
-<img width="1332" height="806" alt="image" src="https://github.com/user-attachments/assets/34ec6459-484a-401e-8173-e6a93cca85b7" />
+<img width="1332" height="798" alt="image" src="https://github.com/user-attachments/assets/4ec90e86-ad80-4f48-99ba-82ea60d12be5" />
+
 
 *Механизм аутентификации на базе ASP.NET Identity с выдачей JWT токенов.*
 
