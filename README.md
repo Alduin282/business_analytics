@@ -9,15 +9,18 @@
 ## Скриншоты
 
 ### 1. Авторизация (JWT + Identity)
-<!-- [INSERT_SCREENSHOT_AUTH_HERE] -->
+<img width="1332" height="806" alt="image" src="https://github.com/user-attachments/assets/34ec6459-484a-401e-8173-e6a93cca85b7" />
+
 *Механизм аутентификации на базе ASP.NET Identity с выдачей JWT токенов.*
 
 ### 2. Аналитический Дашборд
-<!-- [INSERT_SCREENSHOT_DASHBOARD_HERE] -->
+<img width="1329" height="802" alt="image" src="https://github.com/user-attachments/assets/31e3ebfb-50aa-44eb-906c-07d16eda8e53" />
+
 *Визуализация метрик (выручка, количество заказов) с фильтрацией по периодам и таймзонам.*
 
 ### 3. Импорт Данных
-<!-- [INSERT_SCREENSHOT_IMPORT_HERE] -->
+<img width="1315" height="799" alt="image" src="https://github.com/user-attachments/assets/e812eab0-0d99-4065-84a9-3bbdac8d688f" />
+
 *Загрузка CSV файлов через масштабируемый Pipeline с валидацией и дедупликацией.*
 
 ---
