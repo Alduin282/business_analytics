@@ -1,24 +1,24 @@
-using BusinessAnalytics.API.Data;
 using BusinessAnalytics.API.Models;
+using BusinessAnalytics.API.Repositories;
 
 namespace BusinessAnalytics.API.Services.Events.Observers;
 
 public class AuditObserver : IImportObserver
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AuditObserver> _logger;
 
-    public AuditObserver(IServiceProvider serviceProvider, ILogger<AuditObserver> logger)
+    public AuditObserver(IServiceScopeFactory scopeFactory, ILogger<AuditObserver> logger)
     {
-        _serviceProvider = serviceProvider;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
     public async Task HandleAsync(ImportActivityEvent @event)
     {
-        // Use a new scope since this might be called from a long-running process or background
-        using var scope = _serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        using var scope = _scopeFactory.CreateScope();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var repository = unitOfWork.Repository<AuditLog, Guid>();
 
         var log = new AuditLog
         {
@@ -30,8 +30,8 @@ public class AuditObserver : IImportObserver
             CreatedAt = @event.Timestamp
         };
 
-        context.AuditLogs.Add(log);
-        await context.SaveChangesAsync();
+        await repository.AddAsync(log);
+        await unitOfWork.CompleteAsync();
         
         _logger.LogInformation("Audit log created for action {Action} by user {UserId}", @event.Action, @event.UserId);
     }

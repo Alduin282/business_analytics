@@ -81,10 +81,10 @@ builder.Services.AddScoped<IImportPipelineStage, ValidationStage>();
 builder.Services.AddScoped<IImportPipelineStage, TransformStage>();
 builder.Services.AddScoped<IImportPipelineStage, PersistStage>();
 builder.Services.AddScoped<ImportPipeline>();
+builder.Services.Decorate<ImportPipeline, PerformanceImportPipeline>();
 
 // Observer Pattern - Events & Observers
 builder.Services.AddScoped<IImportObserver, AuditObserver>();
-builder.Services.AddScoped<IImportObserver, PerformanceObserver>();
 builder.Services.AddScoped<IImportEventDispatcher, ImportEventDispatcher>();
 
 // CORS
