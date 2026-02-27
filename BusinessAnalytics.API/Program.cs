@@ -12,6 +12,7 @@ using BusinessAnalytics.API.Services.Import.Pipeline;
 using BusinessAnalytics.API.Services.Import.Pipeline.Stages;
 using BusinessAnalytics.API.Services.Events;
 using BusinessAnalytics.API.Services.Events.Observers;
+using BusinessAnalytics.API.Services.Analytics;
 
 // на время разработки упрощаем требования ко всему , небезопасно для прода 
 // TODO: в проде заменить на норм требования
@@ -86,6 +87,9 @@ builder.Services.Decorate<ImportPipeline, PerformanceImportPipeline>();
 // Observer Pattern - Events & Observers
 builder.Services.AddScoped<IImportObserver, AuditObserver>();
 builder.Services.AddScoped<IImportEventDispatcher, ImportEventDispatcher>();
+
+// Analytics Service
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 // CORS
 builder.Services.AddCors(options =>

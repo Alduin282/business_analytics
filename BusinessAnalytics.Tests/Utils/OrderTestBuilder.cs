@@ -1,3 +1,5 @@
+namespace BusinessAnalytics.Tests.Utils;
+
 using System.Data.Common;
 using BusinessAnalytics.API.Models;
 
